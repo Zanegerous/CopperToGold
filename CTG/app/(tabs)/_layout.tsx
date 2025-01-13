@@ -7,6 +7,7 @@ export default function TabLayout() {
       <Tabs.Screen name="index" options={{ headerShown: false, title: "Home" }} />
       <Tabs.Screen name="settings" options={{ headerShown: false, title: "Settings" }} />
       <Tabs.Screen name="colors" options={{ headerShown: false, title: "ColorTest" }} />
+      <Tabs.Screen name="camera" options={{ headerShown: false, title: "CameraTest" }} />
     </Tabs>
   )
 
