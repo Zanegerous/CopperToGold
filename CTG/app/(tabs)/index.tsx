@@ -1,5 +1,4 @@
 import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
-import "../../global.css";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
 
