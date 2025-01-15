@@ -3,8 +3,8 @@ import { Text } from "react-native";
 
 export default function Settings() {
     return (
-        <SafeAreaView>
-            <Text> Welcome to the settings page </Text>
+        <SafeAreaView className="bg-slate-900 flex-1">
+            <Text className="text-white"> Welcome to the settings page </Text>
         </SafeAreaView>
     )
 }

@@ -1,5 +1,4 @@
-import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
-import "../../global.css";
+import { Modal, Pressable, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
 
@@ -22,8 +21,8 @@ export default function Index() {
   return (
     // Highly recommend using safeareaview as it ensures the border of the screen isnt covered by the camera and stuff 
     <SafeAreaView className={styles.container}>
-
-      <Text className="text-center text-3xl text-black">Welcome to the home page</Text>
+      <StatusBar barStyle={'light-content'} className='bg-zinc-900' />
+      <Text className="text-center text-3xl text-white">Welcome to the home page</Text>
 
       {/* Button Example */}
       <TouchableOpacity onPress={buttonPress} className="bg-black rounded-b-lg rounded-t-2xl w-1/3 h-8 justify-center">
@@ -51,7 +50,7 @@ export default function Index() {
 // Will not work using intellisense so recommended to figure out what you want in the actual cell and then move it to styles
 // Implementing light/dark mode and stuff should come later
 const styles = {
-  container: "flex-1 items-center justify-center bg-blue-600",
+  container: "flex-1 items-center justify-center bg-slate-900",
   text: 'text-center text-3xl text-red-400'
 }
 
