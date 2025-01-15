@@ -6,6 +6,7 @@ export default function TabLayout() {
     <Tabs screenOptions={{tabBarActiveTintColor: 'blue'}}>
       <Tabs.Screen name="index" options={{headerShown: false, title: "Home"}} />
       <Tabs.Screen name="settings" options={{headerShown: false, title: "Settings"}} />
+      <Tabs.Screen name="searchResults" options={{headerShown: false, title: "Results"}} />
     </Tabs>
   )
 
