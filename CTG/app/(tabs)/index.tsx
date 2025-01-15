@@ -2,9 +2,16 @@ import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 import "../../global.css";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
+import { useTheme } from "../context/ThemeContext";
+import { Redirect } from "expo-router";
 
 
 export default function Index() {
+  
+
+
+  return <Redirect href="/Pages/LoginPage" />;
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Example button press functions
@@ -54,4 +61,3 @@ const styles = {
   container: "flex-1 items-center justify-center bg-blue-600",
   text: 'text-center text-3xl text-red-400'
 }
-
