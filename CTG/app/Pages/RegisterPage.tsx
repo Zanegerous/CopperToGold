@@ -14,39 +14,25 @@ export default function RegisterPage() {
   const router = useRouter();
 
   const handleRegister = async () => {
-    // Email validation regex
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  
-    // Password validation regex
-    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-  
-    if (!emailRegex.test(email)) {
-      Alert.alert("Invalid Email", "Please enter a valid email address.");
-      return;
-    }
-  
-    if (!passwordRegex.test(password)) {
-      Alert.alert(
-        "Invalid Password",
-        "Password must be at least 8 characters long and include at least one uppercase letter, one number, and one special character."
-      );
-      return;
-    }
-  
-    // Proceed with Firebase registration if validations pass
     const { user, error } = await registerWithEmailAndPassword(email, password);
+
     if (error) {
-      const firebaseError = error as FirebaseError;
-      Alert.alert("Error", firebaseError.message || "An unknown error occurred");
+      // If error is a string from validation, show it as an alert
+      if (typeof error === "string") {
+        Alert.alert("Error", error);
+      } else {
+        // Handle Firebase error if it's an object
+        const firebaseError = error as FirebaseError;
+        Alert.alert("Error", firebaseError.message || "An unknown error occurred.");
+      }
     } else {
       Alert.alert("Success", "Account created successfully!");
       console.log("Registered user:", user);
 
+      // Redirect to LoginPage
       router.push("/Pages/LoginPage");
-      
     }
   };
-  
 
   return (
     <SafeAreaView

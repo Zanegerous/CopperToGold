@@ -2,34 +2,28 @@ import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import "../../global.css";
-import { useTheme } from "../context/ThemeContext"; // For dark mode
-import { loginWithEmailAndPassword } from "../Auth/login";
-import { FirebaseError } from "firebase/app";
-import { useRouter } from "expo-router"; 
-
+import { useTheme } from "../context/ThemeContext";
+import { handleLogin } from "../Auth/login"; // Import the centralized login function
+import { useRouter } from "expo-router";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { isDarkMode } = useTheme();
-  const router = useRouter(); 
+  const router = useRouter();
 
-  
+  const onLoginPress = async () => {
+    const { success, user, message } = await handleLogin(email, password);
 
-  const handleLogin = async () => {
-    const { user, error } = await loginWithEmailAndPassword(email, password);
-    if (error) {
-      const firebaseError = error as FirebaseError;
-      Alert.alert("Error", firebaseError.message || "An unknown error occurred.");
-    } else {
+    if (success) {
       Alert.alert("Success", "Logged in successfully!");
       console.log("Logged in user:", user);
-      // Navigate to home or dashboard
-    }
-  };
 
-  const navigateToRegister = () => {
-    router.push("/Pages/RegisterPage"); // Navigate to the register page
+      // Navigate to the index page after successful login
+      router.push("/");
+    } else {
+      Alert.alert("Error", message);
+    }
   };
 
   return (
@@ -82,19 +76,10 @@ export default function LoginPage() {
 
         {/* Login Button */}
         <TouchableOpacity
-          onPress={handleLogin}
+          onPress={onLoginPress}
           className="bg-green-500 w-full rounded py-3 mb-4"
         >
           <Text className="text-center text-white text-lg">Submit</Text>
-        </TouchableOpacity>
-
-        {/* Register Button */}
-        <TouchableOpacity onPress={navigateToRegister}>
-          <Text
-            className={`underline ${isDarkMode ? "text-green-400" : "text-green-600"}`}
-          >
-            Create new Account
-          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
