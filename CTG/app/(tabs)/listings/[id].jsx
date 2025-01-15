@@ -15,7 +15,6 @@ export default function Listing() {
 
   return (
     <SafeAreaView className="bg-slate-700 size-full">
-      <Text>Details of user {id} </Text>
       <Image className={styles.image} source={LISTING_PICS[listingInfo.imgId]} resizeMode="contain" />
       <View className={styles.seperator}/>
       <Text className={styles.title}>{listingInfo.title}</Text>
