@@ -7,7 +7,7 @@ import LISTINGS from "../../../constants/exampleListings.js";
 import LISTING_PICS from "../../../constants/examplePics.js"
 
 export default function Listing() {
-  const {id} = useLocalSearchParams();
+  const { id }: any = useLocalSearchParams();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -16,12 +16,12 @@ export default function Listing() {
   return (
     <SafeAreaView className="bg-slate-700 size-full">
       <Image className={styles.image} source={LISTING_PICS[listingInfo.imgId]} resizeMode="contain" />
-      <View className={styles.seperator}/>
-      <Text className={styles.title}>{listingInfo.title}</Text>
-      <Text className={styles.text}>•Price: ${listingInfo.price}</Text>
-      <Text className={styles.text}>•Condition: {listingInfo.cond}</Text>
-      <Text className={styles.text}>•Quantity Sold: {listingInfo.quantitySold}</Text>
-      <Text className={styles.text}>•Upload Date: {listingInfo.uploadDate}</Text>
+      <View className={styles.seperator} />
+      <Text className={styles.title}> {listingInfo.title} </Text>
+      <Text className={styles.text}> •Price: ${listingInfo.price} </Text>
+      <Text className={styles.text}> •Condition: {listingInfo.cond} </Text>
+      <Text className={styles.text}> •Quantity Sold: {listingInfo.quantitySold} </Text>
+      <Text className={styles.text}> •Upload Date: {listingInfo.uploadDate} </Text>
       <TouchableOpacity onPress={() => setIsModalOpen(true)} className={styles.openButton}>
         <Text className="text-white text-center text-2xl">More Details</Text>
       </TouchableOpacity>
@@ -43,7 +43,7 @@ export default function Listing() {
 const styles = {
   listingView: 'my-6 mx-3',
   image: "size-[380px] mt-[30px] mx-auto rounded-xl",
-  seperator : "bg-white h-1 w-[95%] rounded-md mx-auto my-5",
+  seperator: "bg-white h-1 w-[95%] rounded-md mx-auto my-5",
   title: "text-center text-3xl mx-1 mb-2 text-white font-bold",
   text: "text-3xl m-50 text-white",
   openButton: "bg-slate-800 rounded-2xl mx-auto my-5 p-5 w-3/4 justify-center",

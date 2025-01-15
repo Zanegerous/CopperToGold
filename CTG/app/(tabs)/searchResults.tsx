@@ -17,10 +17,10 @@ export default function SearchResults() {
     title: string
     price: number
     cond: string
-    imgId : number
-    id : string
+    imgId: number
+    id: string
   };
-  
+
   const Item = (props: ItemProps) => (
     <Pressable onPress={() => handlePress(props.id)}>
       <View className={styles.listingView}>
@@ -41,10 +41,10 @@ export default function SearchResults() {
         // important stuff here
         data={LISTINGS}
         keyExtractor={item => item.id}
-        renderItem={({item}) => <Item title={item.title} price={item.price} cond={item.cond} imgId={item.imgId} id={item.id}/>}
+        renderItem={({ item }) => <Item title={item.title} price={item.price} cond={item.cond} imgId={item.imgId} id={item.id} />}
         // styling stuff here
-        showsVerticalScrollIndicator = {false}
-        contentContainerClassName= {styles.container}
+        showsVerticalScrollIndicator={false}
+        contentContainerClassName={styles.container}
         ItemSeparatorComponent={seperator}
       />
     </SafeAreaView>
@@ -57,5 +57,5 @@ const styles = {
   image: 'size-[300px] flex-auto mx-auto rounded-sm',
   title: 'text-left text-3xl text-white font-bold',
   text: 'text-left text-2xl text-white',
-  seperator : 'bg-slate-800 h-1'
+  seperator: 'bg-slate-800 h-1'
 }

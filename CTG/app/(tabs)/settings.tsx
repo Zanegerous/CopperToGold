@@ -50,7 +50,7 @@ export default function Settings() {
       <TouchableOpacity
         style={[
           styles.logoutButton,
-          { backgroundColor: isDarkMode ? "#444" : "#f00" },
+          { backgroundColor: "#f00" },
         ]}
         onPress={handleLogout}
       >
