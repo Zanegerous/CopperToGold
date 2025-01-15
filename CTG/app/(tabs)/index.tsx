@@ -1,57 +1,79 @@
-import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Modal, Text, TouchableOpacity, View } from "react-native";
 import "../../global.css";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
-
+import { useTheme } from "../context/ThemeContext";
+import { Redirect } from "expo-router";
+import { auth } from "../firebaseconfig/firebase";
 
 export default function Index() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const user = auth.currentUser; // This is to see the user that's currently logged in
+  const { isDarkMode } = useTheme(); // This is for accessing darkmode from ThemeContext
+
+  if (!user) {
+    // Redirect to the login page if no user is logged in
+    return <Redirect href="/Pages/LoginPage" />;
+  }
 
   // Example button press functions
-  // arrow function is preffered for our usecase so I recommend yall use this one
   const buttonPress = () => {
-    alert("Button Pressed, ill open the modal")
-    setIsModalOpen(true)
-  }
-
-  // not recommended but still works, might have some issues though
-  function buttonPress2() {
-    alert("Button Pressed Here")
-  }
+    alert("Button Pressed, I'll open the modal");
+    setIsModalOpen(true);
+  };
 
   return (
-    // Highly recommend using safeareaview as it ensures the border of the screen isnt covered by the camera and stuff 
-    <SafeAreaView className={styles.container}>
-
-      <Text className="text-center text-3xl text-black">Welcome to the home page</Text>
+    <SafeAreaView
+      className={`flex-1 items-center justify-center ${isDarkMode ? "bg-black" : "bg-blue-600"
+        }`}
+    >
+      <Text
+        className={`text-center text-3xl ${isDarkMode ? "text-white" : "text-black"
+          }`}
+      >
+        Welcome to the home page
+      </Text>
 
       {/* Button Example */}
-      <TouchableOpacity onPress={buttonPress} className="bg-black rounded-b-lg rounded-t-2xl w-1/3 h-8 justify-center">
-        <Text className="text-emerald-500 text-center text-2xl">Button Example</Text>
+      <TouchableOpacity
+        onPress={buttonPress}
+        className={`${isDarkMode ? "bg-gray-700" : "bg-black"
+          } rounded-b-lg rounded-t-2xl w-1/3 h-8 justify-center`}
+      >
+        <Text
+          className={`${isDarkMode ? "text-emerald-300" : "text-emerald-500"
+            } text-center text-2xl`}
+        >
+          Button Example
+        </Text>
       </TouchableOpacity>
 
       <Modal visible={isModalOpen}>
-        <SafeAreaView className="bg-orange-600 flex-1">
+        <SafeAreaView
+          className={`${isDarkMode ? "bg-gray-800" : "bg-orange-600"
+            } flex-1`}
+        >
+          <Text
+            className={`text-6xl p-2 font-light text-center ${isDarkMode ? "bg-gray-900 text-white" : "bg-red-700 text-black"
+              } absolute top-5`}
+          >
+            Ok I opened
+          </Text>
 
-          <Text className="text-6xl p-2 font-light text-center bg-red-700 absolute top-5"> Ok I opened</Text>
-
-          <TouchableOpacity onPress={() => setIsModalOpen(false)} className="w-48 bg-slate-100 p-2 rounded-xl self-center absolute bottom-4 ">
-            <Text className="text-center">Close Modal</Text>
+          <TouchableOpacity
+            onPress={() => setIsModalOpen(false)}
+            className={`w-48 ${isDarkMode ? "bg-gray-500" : "bg-slate-100"
+              } p-2 rounded-xl self-center absolute bottom-4`}
+          >
+            <Text
+              className={`text-center ${isDarkMode ? "text-black" : "text-gray-700"
+                }`}
+            >
+              Close Modal
+            </Text>
           </TouchableOpacity>
-
         </SafeAreaView>
-
       </Modal>
     </SafeAreaView>
   );
 }
-
-
-// Showcase of how you can use a style setup, ideally we will create a seperate folder for styles and pull from there for consistent things.
-// Will not work using intellisense so recommended to figure out what you want in the actual cell and then move it to styles
-// Implementing light/dark mode and stuff should come later
-const styles = {
-  container: "flex-1 items-center justify-center bg-blue-600",
-  text: 'text-center text-3xl text-red-400'
-}
-
