@@ -25,6 +25,10 @@ export default function LoginPage() {
       Alert.alert("Error", message);
     }
   };
+  const navigatetoRegister = async() => {
+
+    router.push("/Pages/RegisterPage");
+  };
 
   return (
     <SafeAreaView
@@ -80,6 +84,15 @@ export default function LoginPage() {
           className="bg-green-500 w-full rounded py-3 mb-4"
         >
           <Text className="text-center text-white text-lg">Submit</Text>
+        </TouchableOpacity>
+
+        {/* Register Button */}
+        <TouchableOpacity onPress={navigatetoRegister}>
+          <Text
+            className={`underline ${isDarkMode ? "text-green-400" :  "text-green-600"}`}
+            >
+              Create an Account
+            </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
