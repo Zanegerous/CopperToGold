@@ -24,14 +24,12 @@ export default function Index() {
 
   return (
     <SafeAreaView
-      className={`flex-1 items-center justify-center ${
-        isDarkMode ? "bg-black" : "bg-blue-600"
-      }`}
+      className={`flex-1 items-center justify-center ${isDarkMode ? "bg-black" : "bg-blue-600"
+        }`}
     >
       <Text
-        className={`text-center text-3xl ${
-          isDarkMode ? "text-white" : "text-black"
-        }`}
+        className={`text-center text-3xl ${isDarkMode ? "text-white" : "text-black"
+          }`}
       >
         Welcome to the home page
       </Text>
@@ -39,14 +37,12 @@ export default function Index() {
       {/* Button Example */}
       <TouchableOpacity
         onPress={buttonPress}
-        className={`${
-          isDarkMode ? "bg-gray-700" : "bg-black"
-        } rounded-b-lg rounded-t-2xl w-1/3 h-8 justify-center`}
+        className={`${isDarkMode ? "bg-gray-700" : "bg-black"
+          } rounded-b-lg rounded-t-2xl w-1/3 h-8 justify-center`}
       >
         <Text
-          className={`${
-            isDarkMode ? "text-emerald-300" : "text-emerald-500"
-          } text-center text-2xl`}
+          className={`${isDarkMode ? "text-emerald-300" : "text-emerald-500"
+            } text-center text-2xl`}
         >
           Button Example
         </Text>
@@ -54,28 +50,24 @@ export default function Index() {
 
       <Modal visible={isModalOpen}>
         <SafeAreaView
-          className={`${
-            isDarkMode ? "bg-gray-800" : "bg-orange-600"
-          } flex-1`}
+          className={`${isDarkMode ? "bg-gray-800" : "bg-orange-600"
+            } flex-1`}
         >
           <Text
-            className={`text-6xl p-2 font-light text-center ${
-              isDarkMode ? "bg-gray-900 text-white" : "bg-red-700 text-black"
-            } absolute top-5`}
+            className={`text-6xl p-2 font-light text-center ${isDarkMode ? "bg-gray-900 text-white" : "bg-red-700 text-black"
+              } absolute top-5`}
           >
             Ok I opened
           </Text>
 
           <TouchableOpacity
             onPress={() => setIsModalOpen(false)}
-            className={`w-48 ${
-              isDarkMode ? "bg-gray-500" : "bg-slate-100"
-            } p-2 rounded-xl self-center absolute bottom-4`}
+            className={`w-48 ${isDarkMode ? "bg-gray-500" : "bg-slate-100"
+              } p-2 rounded-xl self-center absolute bottom-4`}
           >
             <Text
-              className={`text-center ${
-                isDarkMode ? "text-black" : "text-gray-700"
-              }`}
+              className={`text-center ${isDarkMode ? "text-black" : "text-gray-700"
+                }`}
             >
               Close Modal
             </Text>

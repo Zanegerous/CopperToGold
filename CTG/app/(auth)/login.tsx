@@ -1,5 +1,5 @@
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { FirebaseError } from "firebase/app"; 
+import { FirebaseError } from "firebase/app";
 import { auth } from "../firebaseconfig/firebase";
 
 // Login function with error handling and user response

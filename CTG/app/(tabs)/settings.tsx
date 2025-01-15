@@ -1,9 +1,9 @@
 import React from "react";
 import { View, Text, Switch, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useTheme } from "../context/ThemeContext"; 
-import { auth } from "../firebaseconfig/firebase"; 
-import { useRouter } from "expo-router"; 
+import { useTheme } from "../context/ThemeContext";
+import { auth } from "../firebaseconfig/firebase";
+import { useRouter } from "expo-router";
 
 export default function Settings() {
   const { isDarkMode, toggleDarkMode } = useTheme();
@@ -12,9 +12,9 @@ export default function Settings() {
   // Firebase logout function
   const handleLogout = async () => {
     try {
-      await auth.signOut(); 
+      await auth.signOut();
       Alert.alert("Logged out", "You have been logged out successfully.");
-      router.replace("/Pages/LoginPage"); 
+      router.replace("/Pages/LoginPage");
     } catch (error) {
       console.error("Logout error:", error);
       Alert.alert("Error", "An error occurred while logging out. Please try again.");
