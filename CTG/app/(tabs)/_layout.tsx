@@ -1,5 +1,6 @@
 import { Tabs } from "expo-router";
 import { StyleSheet } from "react-native";
+import { useTheme } from "../context/ThemeContext";
 import Icon from 'react-native-vector-icons/FontAwesome'
 
 export default function TabLayout() {
