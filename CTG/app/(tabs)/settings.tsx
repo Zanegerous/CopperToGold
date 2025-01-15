@@ -1,9 +1,9 @@
 import React from "react";
 import { View, Text, Switch, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useTheme } from "../context/ThemeContext"; // Adjust path as needed
-import { auth } from "../firebaseconfig/firebase"; // Import Firebase auth
-import { useRouter } from "expo-router"; // For navigation
+import { useTheme } from "../context/ThemeContext"; 
+import { auth } from "../firebaseconfig/firebase"; 
+import { useRouter } from "expo-router"; 
 
 export default function Settings() {
   const { isDarkMode, toggleDarkMode } = useTheme();

@@ -3,7 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import "../../global.css";
 import { useTheme } from "../context/ThemeContext";
-import { handleLogin } from "../Auth/login"; // Import the centralized login function
+import { handleLogin } from "../(auth)/login"; 
 import { useRouter } from "expo-router";
 
 export default function LoginPage() {

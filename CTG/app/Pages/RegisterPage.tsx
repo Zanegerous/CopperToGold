@@ -3,7 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import "../../global.css";
 import { useTheme } from "../context/ThemeContext";
-import { registerWithEmailAndPassword } from "../Auth/register";
+import { registerWithEmailAndPassword } from "../(auth)/register";
 import { FirebaseError } from "firebase/app";
 import { useRouter } from "expo-router";
 
