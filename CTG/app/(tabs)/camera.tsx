@@ -41,6 +41,7 @@ export default function Camera() {
         } else {
             alert('Null Camera')
         }
+        router.push("/searchResults");
 
     }
 
@@ -56,8 +57,7 @@ export default function Camera() {
 
             <StatusBar barStyle={'light-content'} className='bg-zinc-900' />
 
-            {/* If a photoURI exists, display it */}
-            {photoURI && <Image source={{ uri: photoURI }} className="flex-1 " />}
+           
 
             {/* Search Input Space */}
 
@@ -74,7 +74,8 @@ export default function Camera() {
                     <Icon name="search" size={20} color='blue' />
                 </TouchableOpacity>
             </View>
-
+             {/* If a photoURI exists, display it */}
+             {photoURI && <Image source={{ uri: photoURI }} style={{height:'85%' }} className="top-16" />}
 
             {/* Opens Camera Modal */}
             <TouchableOpacity className="bg-blue-300 rounded-lg w-1/2 h-10 justify-center self-center absolute bottom-4" onPress={() => isCameraOpen(true)}>
