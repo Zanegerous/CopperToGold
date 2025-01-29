@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { Button, Text, TouchableOpacity, View, Modal, Image, TextInput, TouchableWithoutFeedback, Keyboard, StatusBar } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome'
 import { useRouter } from "expo-router";
+import { WebView } from 'react-native-webview';
 
 // https://docs.expo.dev/versions/latest/sdk/camera/ Expo camera Docs reference
 
@@ -14,7 +15,9 @@ export default function Camera() {
     const cameraRef = useRef(null);
     const [text, setText] = useState('');
     const [searchFocused, setSearchFocused] = useState(false);
-    const router = useRouter()
+    const [soldPage, setSoldPage] = useState('https://fontawesome.com/icons');
+    const [soldModal, setSoldModal] = useState(false);
+    const [history, setHistory] = useState<string[]>([]);
 
     let backgroundColor = 'bg-slate-900';
 
@@ -41,23 +44,33 @@ export default function Camera() {
         } else {
             alert('Null Camera')
         }
-        router.push("/searchResults");
 
     }
 
     const searchResults = () => {
-        alert("You Are Searching for " + text);
+        searchSold();
         setText('');
         Keyboard.dismiss();
-        router.push("/searchResults");
+    }
+
+    const searchSold = () => {
+
+        if (text === '') {
+            alert("Must Enter Search")
+        } else {
+            // Temporary history location, will be updated to only store 10 most recent searches aswell as if a duplicate search is made, then will update the location
+            setHistory([...history, text]);
+            alert(history);
+            setSoldModal(true);
+            setSoldPage(`https://www.ebay.com/sch/i.html?_nkw=${text}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`);
+        }
+
     }
 
     return (
         <SafeAreaView style={{ flex: 1 }} className={backgroundColor}>
 
             <StatusBar barStyle={'light-content'} className='bg-zinc-900' />
-
-           
 
             {/* Search Input Space */}
 
@@ -74,10 +87,11 @@ export default function Camera() {
                     <Icon name="search" size={20} color='blue' />
                 </TouchableOpacity>
             </View>
-             {/* If a photoURI exists, display it */}
-             {photoURI && <Image source={{ uri: photoURI }} style={{height:'85%' }} className="top-16" />}
+            {/* If a photoURI exists, display it */}
+            {photoURI && <Image source={{ uri: photoURI }} style={{ height: '85%' }} className="top-16" />}
 
             {/* Opens Camera Modal */}
+
             <TouchableOpacity className="bg-blue-300 rounded-lg w-1/2 h-10 justify-center self-center absolute bottom-4" onPress={() => isCameraOpen(true)}>
                 <Text className="text-blue-600 text-center text-xl">
                     Open Camera
@@ -98,6 +112,19 @@ export default function Camera() {
                     </TouchableOpacity>
                 </CameraView>
             </Modal>
+
+            {/* Search View Modal */}
+            <Modal visible={soldModal}>
+
+                <TouchableOpacity className="bg-blue-300 rounded-lg h-10 justify-center self-left px-1 absolute top-4 left-2" onPress={() => setSoldModal(false)}>
+                    <Icon name="arrow-left" size={35} color='red' />
+                </TouchableOpacity>
+
+                <View style={{ width: '100%', height: '100%' }} className="absolute top-16">
+                    <WebView style={{ height: '80%' }} source={{ uri: soldPage }} />
+                </View>
+            </Modal>
+
         </SafeAreaView>
     );
 }
