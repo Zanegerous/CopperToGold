@@ -5,6 +5,10 @@ import { Button, Text, TouchableOpacity, View, Modal, Image, TextInput, Touchabl
 import Icon from 'react-native-vector-icons/FontAwesome'
 import { useRouter } from "expo-router";
 import { WebView } from 'react-native-webview';
+import axios from 'axios'
+import * as FileConversion from 'expo-file-system'
+import { FlatList } from 'react-native';
+
 
 // https://docs.expo.dev/versions/latest/sdk/camera/ Expo camera Docs reference
 
@@ -18,6 +22,10 @@ export default function Camera() {
     const [soldPage, setSoldPage] = useState('https://fontawesome.com/icons');
     const [soldModal, setSoldModal] = useState(false);
     const [history, setHistory] = useState<string[]>([]);
+    const [testModal, setTestModal] = useState(false);
+    const [imageResults, setImageResults] = useState<string[]>([]);
+
+
 
     let backgroundColor = 'bg-slate-900';
 
@@ -34,11 +42,46 @@ export default function Camera() {
         );
     }
 
+    const convertImage = async (imageUri: string) => {
+        const base64 = await FileConversion.readAsStringAsync(imageUri, {
+            encoding: FileConversion.EncodingType.Base64,
+        });
+        //console.log('Base64 Image:', base64); 
+        return base64;
+    };
+
+
+    const readImage = async (imageUri: string) => {
+        const base64Image = await convertImage(imageUri);
+
+        const response = await axios.post(
+            `https://vision.googleapis.com/v1/images:annotate?key=${VISION_API_KEY}`,
+            {
+                requests: [
+                    {
+                        image: { content: base64Image },
+                        features: [{ type: 'WEB_DETECTION' }],
+                    },
+                ],
+            }
+        );
+
+        const webDetection = response.data.responses[0].webDetection;
+
+        const similarImages = webDetection.visuallySimilarImages?.map(
+            (img: { url: string }) => img.url
+        ) || [];
+
+        return similarImages;
+    };
+
     const takePicture = async (camera: { takePictureAsync: () => any; } | null) => {
         if (camera != null) {
             const photo = await camera.takePictureAsync();
             setPhotoUri(photo.uri)
-
+            let imageResult = await readImage(photo.uri)
+            setImageResults(imageResult);
+            setTestModal(true)
             //alert(photoURI)
             isCameraOpen(false);
         } else {
@@ -123,6 +166,21 @@ export default function Camera() {
                 <View style={{ width: '100%', height: '100%' }} className="absolute top-16">
                     <WebView style={{ height: '80%' }} source={{ uri: soldPage }} />
                 </View>
+            </Modal>
+
+            <Modal visible={testModal}>
+                <SafeAreaView>
+                    <TouchableOpacity className="bg-blue-300 rounded-lg w-1/4 h-10 justify-center self-left px-1 absolute top-4 left-2" onPress={() => setTestModal(false)}>
+                        <Text className="text-blue-600 text-center text-l">Close Test</Text>
+                    </TouchableOpacity>
+                    <FlatList
+                        data={imageResults}
+                        keyExtractor={(item) => item}
+                        renderItem={({ item }) => (
+                            <Image source={{ uri: item }} style={{ width: 200, height: 200 }} />
+                        )}
+                    />
+                </SafeAreaView>
             </Modal>
 
         </SafeAreaView>
