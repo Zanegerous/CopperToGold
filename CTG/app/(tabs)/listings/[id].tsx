@@ -14,7 +14,7 @@ export default function Listing() {
   const listingInfo = LISTINGS[id - 1];
 
   return (
-    <SafeAreaView className="bg-slate-700 size-full">
+    <SafeAreaView className="bg-[#040a25] size-full">
       <Image className={styles.image} source={LISTING_PICS[listingInfo.imgId]} resizeMode="contain" />
       <View className={styles.seperator} />
       <Text className={styles.title}> {listingInfo.title} </Text>
@@ -46,8 +46,8 @@ const styles = {
   seperator: "bg-white h-1 w-[95%] rounded-md mx-auto my-5",
   title: "text-center text-3xl mx-1 mb-2 text-white font-bold",
   text: "text-3xl m-50 text-white",
-  openButton: "bg-slate-800 rounded-2xl mx-auto my-5 p-5 w-3/4 justify-center",
-  modal: "flex-auto mx-auto mt-[450px] mb-[150px] bg-slate-300 rounded-[20] px-30 py-100 items-center elevation-[5]",
+  openButton: "bg-[#060e37] rounded-2xl mx-auto my-5 p-5 w-3/4 justify-center",
+  modal: "flex-auto mx-auto mt-[450px] mb-[150px] bg-[#f98824] rounded-[20] px-30 py-100 items-center elevation-[5]",
   modalText: "text-2xl p-5 font-light text-center",
-  closeButton: "w-3/4 bg-slate-100 py-4 mt-3 rounded-xl self-center"
+  closeButton: "w-3/4 bg-[#FCBE88] py-4 mt-3 rounded-xl self-center"
 }
