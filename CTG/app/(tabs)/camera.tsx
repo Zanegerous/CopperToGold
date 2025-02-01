@@ -8,7 +8,15 @@ import { WebView } from 'react-native-webview';
 import axios from 'axios'
 import * as FileConversion from 'expo-file-system'
 import { FlatList } from 'react-native';
+import { searchEbay, searchEbayByImage } from "@/ebayApi";
 
+
+interface EbayItem {
+    title: string;
+    price: { value: string; currency: string };
+    image: string;
+    condition: string;
+}
 
 // https://docs.expo.dev/versions/latest/sdk/camera/ Expo camera Docs reference
 
@@ -22,8 +30,8 @@ export default function Camera() {
     const [soldPage, setSoldPage] = useState('https://fontawesome.com/icons');
     const [soldModal, setSoldModal] = useState(false);
     const [history, setHistory] = useState<string[]>([]);
-    const [testModal, setTestModal] = useState(false);
-    const [imageResults, setImageResults] = useState<string[]>([]);
+    const [searchResultModal, setSearchResultModal] = useState(false);
+    const [searchResults, setSearchResults] = useState<EbayItem[]>([]);
 
 
 
@@ -42,7 +50,35 @@ export default function Camera() {
         );
     }
 
-    const convertImage = async (imageUri: string) => {
+    // This is the formatting for the results, rework it as needed
+    const renderItem = ({ item }: any) => (
+        <TouchableOpacity
+            onPress={() => { alert(item.title) }}
+            style={{
+                padding: 10,
+                width: 150,
+                marginVertical: 5,
+                marginHorizontal: 10,
+            }}
+            className="bg-gray-500 border-black rounded-md border-spacing-4"
+        >
+            <Image
+                source={{ uri: item.image }}
+                style={{
+                    width: 120,
+                    height: 120,
+                    borderRadius: 8,
+                    marginBottom: 5,
+                }}
+            />
+            <Text className="text-center color-blue-900 font-bold">{item.title}</Text>
+            <Text className="text-center">{item.price.currency} {item.price.value}</Text>
+            <Text className="text-center">{item.condition}</Text>
+        </TouchableOpacity>
+    );
+
+
+    const convertImageToBase64 = async (imageUri: string) => {
         const base64 = await FileConversion.readAsStringAsync(imageUri, {
             encoding: FileConversion.EncodingType.Base64,
         });
@@ -50,48 +86,41 @@ export default function Camera() {
         return base64;
     };
 
+    const processImageSearch = async (imageUri: string) => {
+        const base64Image = await convertImageToBase64(imageUri);
+        // console.log(base64Image)
+        await searchEbayByImage(base64Image).then((results) => {
+            console.log('Found items: ', results)
+            setSearchResults(results)
+            setSearchResultModal(true)
+        }).catch((error) => {
+            console.error("Error searching eBay with image:", error)
+        })
 
-    const readImage = async (imageUri: string) => {
-        const base64Image = await convertImage(imageUri);
-
-        const response = await axios.post(
-            `https://vision.googleapis.com/v1/images:annotate?key=${VISION_API_KEY}`,
-            {
-                requests: [
-                    {
-                        image: { content: base64Image },
-                        features: [{ type: 'WEB_DETECTION' }],
-                    },
-                ],
-            }
-        );
-
-        const webDetection = response.data.responses[0].webDetection;
-
-        const similarImages = webDetection.visuallySimilarImages?.map(
-            (img: { url: string }) => img.url
-        ) || [];
-
-        return similarImages;
     };
 
     const takePicture = async (camera: { takePictureAsync: () => any; } | null) => {
         if (camera != null) {
             const photo = await camera.takePictureAsync();
             setPhotoUri(photo.uri)
-            let imageResult = await readImage(photo.uri)
-            setImageResults(imageResult);
-            setTestModal(true)
-            //alert(photoURI)
             isCameraOpen(false);
+            processImageSearch(photo.uri)
+            //alert(photoURI)
+
         } else {
             alert('Null Camera')
         }
 
     }
 
-    const searchResults = () => {
-        searchSold();
+    const searchTextResults = async () => {
+        await searchEbay(text).then((results) => {
+            console.log('Found items: ', results)
+            setSearchResults(results)
+            setSearchResultModal(true)
+        }).catch((error) => {
+            console.log('Error Searching eBay with text:', error)
+        })
         setText('');
         Keyboard.dismiss();
     }
@@ -126,7 +155,7 @@ export default function Camera() {
                     className={`w-2/3 absolute top-3 self-center  border-2 rounded-2xl h-12 
                         ${searchFocused ? 'border-blue-500 bg-blue-200' : 'border-black bg-gray-400'}`}
                 />
-                <TouchableOpacity onPress={() => { searchResults(); }} className=" absolute top-6 right-20 justify-left rounded-lg bg-transparent self-end h-6">
+                <TouchableOpacity onPress={() => { searchTextResults(); }} className=" absolute top-6 right-20 justify-left rounded-lg bg-transparent self-end h-6">
                     <Icon name="search" size={20} color='blue' />
                 </TouchableOpacity>
             </View>
@@ -156,7 +185,7 @@ export default function Camera() {
                 </CameraView>
             </Modal>
 
-            {/* Search View Modal */}
+            {/* Search WebView Modal */}
             <Modal visible={soldModal}>
 
                 <TouchableOpacity className="bg-blue-300 rounded-lg h-10 justify-center self-left px-1 absolute top-4 left-2" onPress={() => setSoldModal(false)}>
@@ -168,18 +197,25 @@ export default function Camera() {
                 </View>
             </Modal>
 
-            <Modal visible={testModal}>
-                <SafeAreaView>
-                    <TouchableOpacity className="bg-blue-300 rounded-lg w-1/4 h-10 justify-center self-left px-1 absolute top-4 left-2" onPress={() => setTestModal(false)}>
-                        <Text className="text-blue-600 text-center text-l">Close Test</Text>
+            {/* Search View Modal */}
+            <Modal visible={searchResultModal}>
+                <SafeAreaView className="bg-green-400">
+                    <TouchableOpacity className="bg-blue-300 rounded-lg w-1/4 h-10 justify-center self-left px-1 absolute top-4 left-2" onPress={() => setSearchResultModal(false)}>
+                        <Text className="text-blue-600 text-center text-l">Close Results</Text>
                     </TouchableOpacity>
-                    <FlatList
-                        data={imageResults}
-                        keyExtractor={(item) => item}
-                        renderItem={({ item }) => (
-                            <Image source={{ uri: item }} style={{ width: 200, height: 200 }} />
-                        )}
-                    />
+                    <View className="top-16">
+                        <FlatList
+                            data={searchResults}
+                            renderItem={renderItem}
+                            keyExtractor={(item) => item.title}
+                            numColumns={2}
+                            columnWrapperStyle={{ justifyContent: 'space-between' }}
+                            contentContainerStyle={{ padding: 15 }}
+
+                        />
+
+                    </View>
+
                 </SafeAreaView>
             </Modal>
 
