@@ -3,9 +3,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRef, useState } from 'react';
 import { Button, Text, TouchableOpacity, View, Modal, Image, TextInput, TouchableWithoutFeedback, Keyboard, StatusBar } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome'
-import { useRouter } from "expo-router";
 import { WebView } from 'react-native-webview';
-import axios from 'axios'
 import * as FileConversion from 'expo-file-system'
 import { FlatList } from 'react-native';
 import { searchEbay, searchEbayByImage } from "@/ebayApi";
@@ -76,7 +74,6 @@ export default function Camera() {
             <Text className="text-center">{item.condition}</Text>
         </TouchableOpacity>
     );
-
 
     const convertImageToBase64 = async (imageUri: string) => {
         const base64 = await FileConversion.readAsStringAsync(imageUri, {
@@ -159,6 +156,7 @@ export default function Camera() {
                     <Icon name="search" size={20} color='blue' />
                 </TouchableOpacity>
             </View>
+
             {/* If a photoURI exists, display it */}
             {photoURI && <Image source={{ uri: photoURI }} style={{ height: '85%' }} className="top-16" />}
 
