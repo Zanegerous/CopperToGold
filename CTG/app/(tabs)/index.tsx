@@ -1,22 +1,32 @@
-import { Modal, Text, TouchableOpacity, View } from "react-native";
-import "../../global.css";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useState } from "react";
-import { useTheme } from "../context/ThemeContext";
-import { Redirect } from "expo-router";
+// app/index.tsx
+import React, { useState } from "react";
+import {Modal,Text,TouchableOpacity,View,StyleSheet, SafeAreaView,} from "react-native";
+import { useRouter, Redirect } from "expo-router";
 import { auth } from "../firebaseconfig/firebase";
+import { useTheme } from "../context/ThemeContext";
+import { useTextScale } from "../context/TextScaleContext";
 
 export default function Index() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const user = auth.currentUser; // This is to see the user that's currently logged in
-  const { isDarkMode } = useTheme(); // This is for accessing darkmode from ThemeContext
 
+  // Access the router for going back
+  const router = useRouter();
+
+  // Current logged-in user
+  const user = auth.currentUser;
+
+  // Access dark mode from ThemeContext
+  const { isDarkMode } = useTheme();
+
+  // Access your chosen fontScale from TextScaleContext
+  const { fontScale } = useTextScale();
+
+  // If no user is logged in, redirect
   if (!user) {
-    // Redirect to the login page if no user is logged in
     return <Redirect href="/Pages/LoginPage" />;
   }
 
-  // Example button press functions
+  // Simple button handler
   const buttonPress = () => {
     alert("Button Pressed, I'll open the modal");
     setIsModalOpen(true);
@@ -24,50 +34,72 @@ export default function Index() {
 
   return (
     <SafeAreaView
-      className={`flex-1 items-center justify-center ${isDarkMode ? "bg-black" : "bg-blue-600"
-        }`}
+      style={[
+        styles.container,
+        { backgroundColor: isDarkMode ? "black" : "blue" },
+      ]}
     >
+
       <Text
-        className={`text-center text-3xl ${isDarkMode ? "text-white" : "text-black"
-          }`}
+        style={{
+          textAlign: "center",
+          fontSize: 30 * fontScale,
+          color: isDarkMode ? "#FFFFFF" : "#000000",
+          marginBottom: 16,
+        }}
       >
         Welcome to the home page
       </Text>
 
-      {/* Button Example */}
+      {/* Example button that opens a modal */}
       <TouchableOpacity
         onPress={buttonPress}
-        className={`${isDarkMode ? "bg-gray-700" : "bg-black"
-          } rounded-b-lg rounded-t-2xl w-1/3 h-8 justify-center`}
+        style={[
+          styles.button,
+          { backgroundColor: isDarkMode ? "#555" : "#000" },
+        ]}
       >
         <Text
-          className={`${isDarkMode ? "text-emerald-300" : "text-emerald-500"
-            } text-center text-2xl`}
+          style={{
+            color: "#fff",
+            textAlign: "center",
+            fontSize: 20 * fontScale,
+          }}
         >
           Button Example
         </Text>
       </TouchableOpacity>
 
-      <Modal visible={isModalOpen}>
+      {/* Modal that uses the same contexts */}
+      <Modal visible={isModalOpen} animationType="slide">
         <SafeAreaView
-          className={`${isDarkMode ? "bg-gray-800" : "bg-orange-600"
-            } flex-1`}
+          style={[
+            styles.modalContainer,
+            { backgroundColor: isDarkMode ? "#222" : "orange" },
+          ]}
         >
           <Text
-            className={`text-6xl p-2 font-light text-center ${isDarkMode ? "bg-gray-900 text-white" : "bg-red-700 text-black"
-              } absolute top-5`}
+            style={{
+              fontSize: 36 * fontScale,
+              color: isDarkMode ? "#fff" : "#000",
+              marginBottom: 24,
+            }}
           >
             Ok I opened
           </Text>
-
           <TouchableOpacity
             onPress={() => setIsModalOpen(false)}
-            className={`w-48 ${isDarkMode ? "bg-gray-500" : "bg-slate-100"
-              } p-2 rounded-xl self-center absolute bottom-4`}
+            style={[
+              styles.closeButton,
+              { backgroundColor: isDarkMode ? "#888" : "#ddd" },
+            ]}
           >
             <Text
-              className={`text-center ${isDarkMode ? "text-black" : "text-gray-700"
-                }`}
+              style={{
+                textAlign: "center",
+                color: isDarkMode ? "#000" : "#333",
+                fontSize: 18 * fontScale,
+              }}
             >
               Close Modal
             </Text>
@@ -77,3 +109,28 @@ export default function Index() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  button: {
+    borderRadius: 10,
+    width: "40%",
+    height: 40,
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  closeButton: {
+    width: 120,
+    padding: 12,
+    borderRadius: 10,
+  },
+});

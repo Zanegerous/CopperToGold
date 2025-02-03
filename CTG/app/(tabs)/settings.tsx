@@ -1,15 +1,33 @@
-import React from "react";
-import { View, Text, Switch, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import React, { useState } from "react";
+import {View,Text,Switch,StyleSheet,TouchableOpacity,Alert, Platform,} from "react-native";
+import DropDownPicker from "react-native-dropdown-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
+import { useTextScale } from "../context/TextScaleContext";
 import { auth } from "../firebaseconfig/firebase";
 import { useRouter } from "expo-router";
 
-export default function Settings() {
+// If you want a type for the dropdown items:
+type FontScaleOption = {
+  label: string;
+  value: number;
+};
+
+const Settings: React.FC = () => {
   const { isDarkMode, toggleDarkMode } = useTheme();
+  const { fontScale, setFontScale } = useTextScale();
   const router = useRouter();
 
-  // Firebase logout function
+  // State for DropDownPicker
+  const [open, setOpen] = useState<boolean>(false);
+  const [value, setValue] = useState<number>(fontScale);
+  const [items, setItems] = useState<FontScaleOption[]>([
+    { label: "Small", value: 0.8 },
+    { label: "Normal", value: 1 },
+    { label: "Large", value: 1.2 },
+    { label: "X-Large", value: 1.5 },
+  ]);
+
   const handleLogout = async () => {
     try {
       await auth.signOut();
@@ -17,8 +35,17 @@ export default function Settings() {
       router.replace("/Pages/LoginPage");
     } catch (error) {
       console.error("Logout error:", error);
-      Alert.alert("Error", "An error occurred while logging out. Please try again.");
+      Alert.alert(
+        "Error",
+        "An error occurred while logging out. Please try again."
+      );
     }
+  };
+
+  // When an item is selected in the dropdown, update both local state and global text scale
+  const handleSetValue = (selectedValue: any) => {
+    setValue(selectedValue);
+    setFontScale(selectedValue);
   };
 
   return (
@@ -28,14 +55,31 @@ export default function Settings() {
         { backgroundColor: isDarkMode ? "#000" : "#fff" },
       ]}
     >
-      {/* Top title */}
-      <Text style={[styles.title, { color: isDarkMode ? "#fff" : "#000" }]}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+            >
+              
+        <Text style={styles.backButtonText}>{"<"} Back</Text>
+      </TouchableOpacity>
+      {/* Title */}
+      <Text
+        style={[
+          styles.title,
+          { color: isDarkMode ? "#fff" : "#000", fontSize: 18 * fontScale },
+        ]}
+      >
         Welcome to the settings page
       </Text>
 
-      {/* Switch row */}
+      {/* Dark Mode Switch */}
       <View style={styles.switchContainer}>
-        <Text style={{ color: isDarkMode ? "#fff" : "#000" }}>
+        <Text
+          style={{
+            color: isDarkMode ? "#fff" : "#000",
+            fontSize: 16 * fontScale,
+          }}
+        >
           Dark Mode
         </Text>
         <Switch
@@ -46,21 +90,67 @@ export default function Settings() {
         />
       </View>
 
+      {/* Text Scaling Dropdown */}
+      <View style={styles.pickerContainer}>
+        <Text
+          style={{
+            color: isDarkMode ? "#fff" : "#000",
+            fontSize: 16 * fontScale,
+            marginBottom: 8,
+          }}
+        >
+          Text Size
+        </Text>
+        <DropDownPicker
+          open={open}
+          value={value}
+          items={items}
+          setOpen={setOpen}
+          setValue={handleSetValue}
+          setItems={setItems}
+          // Style the dropdown itself
+          style={[
+            styles.dropDown,
+            {
+              backgroundColor: isDarkMode ? "#333" : "#f4f4f4",
+              borderColor: isDarkMode ? "#555" : "#ccc",
+            },
+          ]}
+          // Text inside the dropdown button
+          textStyle={{
+            color: isDarkMode ? "#fff" : "#000",
+            fontSize: 16 * fontScale,
+          }}
+          // The open dropdown list container
+          dropDownContainerStyle={{
+            backgroundColor: isDarkMode ? "#333" : "#f4f4f4",
+            borderColor: isDarkMode ? "#555" : "#ccc",
+          }}
+          placeholderStyle={{
+            color: isDarkMode ? "#ccc" : "#888",
+          }}
+        />
+      </View>
+
       {/* Logout Button */}
       <TouchableOpacity
-        style={[
-          styles.logoutButton,
-          { backgroundColor: isDarkMode ? "#444" : "#f00" },
-        ]}
+        style={[styles.logoutButton, { backgroundColor: "#f00" }]}
         onPress={handleLogout}
       >
-        <Text style={[styles.logoutText, { color: isDarkMode ? "#fff" : "#fff" }]}>
+        <Text
+          style={[
+            styles.logoutText,
+            { color: "#fff", fontSize: 16 * fontScale },
+          ]}
+        >
           Logout
         </Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
-}
+};
+
+export default Settings;
 
 const styles = StyleSheet.create({
   container: {
@@ -69,13 +159,21 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    marginBottom: 12, // space below the title
+    marginBottom: 12,
+    top: 15
   },
   switchContainer: {
     marginTop: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  pickerContainer: {
+    marginTop: 16,
+    width: "100%",
+  },
+  dropDown: {
+    borderWidth: 1,
   },
   logoutButton: {
     marginTop: 32,
@@ -86,5 +184,19 @@ const styles = StyleSheet.create({
   logoutText: {
     fontSize: 16,
     fontWeight: "bold",
+  },
+
+  backButton: {
+    position: "absolute",
+    top: 20,
+    left: 10,
+    backgroundColor: "#ccc",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: "#000",
   },
 });
