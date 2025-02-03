@@ -1,12 +1,13 @@
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRef, useState } from 'react';
-import { Button, Text, TouchableOpacity, View, Modal, Image, TextInput, TouchableWithoutFeedback, Keyboard, StatusBar } from 'react-native';
+import { Button, Text, TouchableOpacity, View, Modal, Image, TextInput, Keyboard, StatusBar, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome'
 import { WebView } from 'react-native-webview';
 import * as FileConversion from 'expo-file-system'
 import { FlatList } from 'react-native';
 import { searchEbay, searchEbayByImage } from "@/ebayApi";
+
 
 
 interface EbayItem {
@@ -15,12 +16,13 @@ interface EbayItem {
     image: string;
     condition: string;
 }
-
+// NOTES: Can use the search to determine average FOR SALE price as the returned image and text data could be utilized to pull each items cost. 
+//        Ebay already filters it so even if i call 10000 items and only 52 exist, it will only return 52, not including similar. This is useful
 // https://docs.expo.dev/versions/latest/sdk/camera/ Expo camera Docs reference
 
 export default function Camera() {
     const [permission, requestPermission] = useCameraPermissions();
-    const [cameraOpen, isCameraOpen] = useState(false);
+    const [cameraOpen, setCameraOpen] = useState(false);
     const [photoURI, setPhotoUri] = useState(null);
     const cameraRef = useRef(null);
     const [text, setText] = useState('');
@@ -30,7 +32,10 @@ export default function Camera() {
     const [history, setHistory] = useState<string[]>([]);
     const [searchResultModal, setSearchResultModal] = useState(false);
     const [searchResults, setSearchResults] = useState<EbayItem[]>([]);
-
+    const [textSearchResults, setTextSearchResults] = useState<EbayItem[]>([]);
+    const [imageSearchResults, setImageSearchResults] = useState<EbayItem[]>([]);
+    const [textAndImageSearch, setTextAndImageSearch] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
 
     let backgroundColor = 'bg-slate-900';
@@ -46,6 +51,10 @@ export default function Camera() {
                 <Button onPress={requestPermission} title="grant permission" />
             </View>
         );
+    }
+
+    const dualSearchMerge = () => {
+        // compare the 10000 results from imageSearchResults and textSearchResults seeing if any match
     }
 
     // This is the formatting for the results, rework it as needed
@@ -75,33 +84,12 @@ export default function Camera() {
         </TouchableOpacity>
     );
 
-    const convertImageToBase64 = async (imageUri: string) => {
-        const base64 = await FileConversion.readAsStringAsync(imageUri, {
-            encoding: FileConversion.EncodingType.Base64,
-        });
-        //console.log('Base64 Image:', base64); 
-        return base64;
-    };
-
-    const processImageSearch = async (imageUri: string) => {
-        const base64Image = await convertImageToBase64(imageUri);
-        // console.log(base64Image)
-        await searchEbayByImage(base64Image).then((results) => {
-            console.log('Found items: ', results)
-            setSearchResults(results)
-            setSearchResultModal(true)
-        }).catch((error) => {
-            console.error("Error searching eBay with image:", error)
-        })
-
-    };
-
     const takePicture = async (camera: { takePictureAsync: () => any; } | null) => {
         if (camera != null) {
             const photo = await camera.takePictureAsync();
             setPhotoUri(photo.uri)
-            isCameraOpen(false);
-            processImageSearch(photo.uri)
+            setCameraOpen(false);
+            searchImageResults(photo.uri)
             //alert(photoURI)
 
         } else {
@@ -110,22 +98,62 @@ export default function Camera() {
 
     }
 
-    const searchTextResults = async () => {
-        await searchEbay(text).then((results) => {
-            console.log('Found items: ', results)
-            setSearchResults(results)
+    const convertImageToBase64 = async (imageUri: string) => {
+        const base64 = await FileConversion.readAsStringAsync(imageUri, {
+            encoding: FileConversion.EncodingType.Base64,
+        });
+        //console.log('Base64 Image:', base64); 
+        return base64;
+    };
+
+    const searchImageResults = async (imageUri: string) => {
+        const base64Image = await convertImageToBase64(imageUri);
+        // console.log(base64Image)
+        setIsLoading(true)
+        await searchEbayByImage(base64Image).then((results) => {
+            // console.log('Found items: ', results);
+            setImageSearchResults(results);
+            setSearchResults(results);
             setSearchResultModal(true)
         }).catch((error) => {
-            console.log('Error Searching eBay with text:', error)
+            console.error("Error searching eBay with image:", error)
+        }).finally(() => {
+            setIsLoading(false);
         })
-        setText('');
-        Keyboard.dismiss();
+
+    };
+
+    const searchTextResults = async () => {
+        setIsLoading(true)
+        if (text != '') {
+            await searchEbay(text).then((results) => {
+                console.log('Found items: ', results.length);
+                setTextSearchResults(results);
+                setSearchResults(results);
+                setSearchResultModal(true);
+            }).catch((error) => {
+                console.log('Error Searching eBay with text:', error);
+            }).finally(() => {
+                setIsLoading(false)
+            })
+            setText('');
+            Keyboard.dismiss();
+        } else {
+            alert('Must Enter Search')
+        }
+
+    }
+
+    const searchBarcodeResult = (barcode: string) => {
+        setCameraOpen(false)
+        setText(barcode)
+        alert('Text has been set to: ' + text)
     }
 
     const searchSold = () => {
 
         if (text === '') {
-            alert("Must Enter Search")
+            alert("Must Enter Search");
         } else {
             // Temporary history location, will be updated to only store 10 most recent searches aswell as if a duplicate search is made, then will update the location
             setHistory([...history, text]);
@@ -142,7 +170,6 @@ export default function Camera() {
             <StatusBar barStyle={'light-content'} className='bg-zinc-900' />
 
             {/* Search Input Space */}
-
             <View className="w-3/4 self-center">
                 <TextInput
                     placeholder="Enter Here"
@@ -161,18 +188,28 @@ export default function Camera() {
             {photoURI && <Image source={{ uri: photoURI }} style={{ height: '85%' }} className="top-16" />}
 
             {/* Opens Camera Modal */}
-
-            <TouchableOpacity className="bg-blue-300 rounded-lg w-1/2 h-10 justify-center self-center absolute bottom-4" onPress={() => isCameraOpen(true)}>
+            <TouchableOpacity className="bg-blue-300 rounded-lg w-1/2 h-10 justify-center self-center absolute bottom-4" onPress={() => setCameraOpen(true)}>
                 <Text className="text-blue-600 text-center text-xl">
                     Open Camera
                 </Text>
             </TouchableOpacity>
 
             <Modal visible={cameraOpen}>
-                {/* Camera Element */}
-                <CameraView ref={cameraRef} style={{ flex: 1 }} facing={'back'} mode="picture" onBarcodeScanned={() => alert('Scanned A Barcode')}>
+                {/* Camera Element. Cant disable shutter audio unfortunetly. may look into switching to react-native-vision-camera*/}
+                <CameraView
+                    ref={cameraRef}
+                    style={{ flex: 1 }}
+                    facing={'back'}
+                    mode="picture"
+                    mute={true}
+                    animateShutter={false}
+                    barcodeScannerSettings={{
+                        barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e", "code128", "code39", "itf14"]
+                    }}
+                    onBarcodeScanned={({ data }) => searchBarcodeResult(data)}
+                >
                     {/*Button to close camera*/}
-                    <TouchableOpacity className="bg-blue-300 rounded-lg w-1/4 h-10 justify-center self-left px-1 absolute top-4 left-2" onPress={() => isCameraOpen(false)}>
+                    <TouchableOpacity className="bg-blue-300 rounded-lg w-1/4 h-10 justify-center self-left px-1 absolute top-4 left-2" onPress={() => setCameraOpen(false)}>
                         <Text className="text-blue-600 text-center text-l">Close Camera</Text>
                     </TouchableOpacity>
 
@@ -216,6 +253,13 @@ export default function Camera() {
 
                 </SafeAreaView>
             </Modal>
+
+            {isLoading && (
+                <View className="absolute top-0 left-0 right-0 bottom-0 justify-center align-middle">
+                    <ActivityIndicator size='large' color="white" />
+                </View>
+            )}
+
 
         </SafeAreaView>
     );

@@ -5,6 +5,8 @@ import { useRef, useState } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome'
 
 
+// https://reactnative.dev/docs/animated
+
 export default function Index() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [submitVisible, setSubmitVisible] = useState(false);
@@ -12,6 +14,7 @@ export default function Index() {
   const [searchFocused, setSearchFocused] = useState(false);
   const animatedWidth = useRef(new Animated.Value(0)).current;
   const animatedYPos = useRef(new Animated.Value(300)).current;
+  const inputRef = useRef<TextInput>(null);
 
   const handleSearchOpen = () => {
     setIsExpanded(true);
@@ -30,13 +33,17 @@ export default function Index() {
         easing: Easing.ease,
         useNativeDriver: false,
       }),
-    ]).start(() => setSubmitVisible(true));
-
-
+    ]).start(() => {
+      setSubmitVisible(true);
+      if (inputRef.current != null) {
+        inputRef.current.focus();
+      }
+    });
   }
 
   const handleSearchClose = () => {
     setSubmitVisible(false)
+    Keyboard.dismiss;
 
     Animated.parallel([
       Animated.timing(animatedWidth, {
@@ -56,11 +63,10 @@ export default function Index() {
       setIsExpanded(false);
       setText('');
     });
-
   }
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <TouchableWithoutFeedback onPress={() => { handleSearchClose(); }}>
       <SafeAreaView className={styles.BackgroundView.join(' ')} >
         <StatusBar barStyle={'light-content'} className='bg-zinc-900' />
         <View className="flex-row items-center justify-center top-16">
@@ -80,7 +86,9 @@ export default function Index() {
                     onFocus={() => setSearchFocused(true)}
                     onBlur={() => setSearchFocused(false)}
                     autoFocus={true}
+                    onSubmitEditing={() => { /* add search function; */ handleSearchClose(); }}
                     className={`w-full self-center border-2 rounded-2xl h-12 ${searchFocused ? 'border-blue-500 bg-blue-200' : 'border-black bg-gray-400'}`}
+                    ref={inputRef}
                   />
                 </Animated.View>
                 {submitVisible ? (<TouchableOpacity onPress={() => { handleSearchClose(); }} className="absolute top-3 right-3">
