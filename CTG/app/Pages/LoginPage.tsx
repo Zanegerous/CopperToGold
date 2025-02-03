@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert,StyleSheet} from "react-native";
 import "../../global.css";
 import { useTheme } from "../context/ThemeContext";
 import { handleLogin } from "../(auth)/login"; 
@@ -93,8 +93,30 @@ export default function LoginPage() {
             >
               Create an Account
             </Text>
+        <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => router.back()}
+                    >
+                      
+                <Text style={styles.backButtonText}>{"<"} Back</Text>
+              </TouchableOpacity>    
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
+const styles = StyleSheet.create({
+  backButton: {
+    position: "absolute",
+    bottom: 270,
+    left: -128,
+    backgroundColor: "#ccc",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: "#000",
+  },
+})
