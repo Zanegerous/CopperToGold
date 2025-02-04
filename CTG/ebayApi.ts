@@ -6,6 +6,7 @@ interface EbayItem {
   price: { value: string; currency: string };
   image: string;
   condition: string;
+  id: string;
 }
 
 // Function to search items on eBay
@@ -30,6 +31,7 @@ export const searchEbay = async (query: string): Promise<EbayItem[]> => {
       price: item.price,
       image: item.image?.imageUrl,
       condition: item.condition,
+      id: item.itemId,
     }));
   } catch (error) {
     console.error("Error fetching eBay data:", error);
@@ -43,7 +45,6 @@ export const searchEbayByImage = async (imageQuery: string): Promise<EbayItem[]>
       `${ebayConfig.baseURL}/buy/browse/v1/item_summary/search_by_image`,
       {
         image: imageQuery,
-        q: 'lego'
       },
       {
         headers: {
@@ -62,6 +63,7 @@ export const searchEbayByImage = async (imageQuery: string): Promise<EbayItem[]>
         price: item.price,
         image: item.image?.imageUrl,
         condition: item.condition,
+        id: item.itemId,
       }));
     } catch (error) {
       console.log("Cant send: ", error)

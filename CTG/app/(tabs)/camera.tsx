@@ -15,6 +15,7 @@ interface EbayItem {
     price: { value: string; currency: string };
     image: string;
     condition: string;
+    id: string;
 }
 // NOTES: Can use the search to determine average FOR SALE price as the returned image and text data could be utilized to pull each items cost. 
 //        Ebay already filters it so even if i call 10000 items and only 52 exist, it will only return 52, not including similar. This is useful
@@ -34,7 +35,8 @@ export default function Camera() {
     const [searchResults, setSearchResults] = useState<EbayItem[]>([]);
     const [textSearchResults, setTextSearchResults] = useState<EbayItem[]>([]);
     const [imageSearchResults, setImageSearchResults] = useState<EbayItem[]>([]);
-    const [textAndImageSearch, setTextAndImageSearch] = useState(false);
+    const [matchingItems, setMatchingItems] = useState<EbayItem[]>([]);
+    const [matchingItemSearch, setMatchingItemSearch] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
 
@@ -54,7 +56,10 @@ export default function Camera() {
     }
 
     const dualSearchMerge = () => {
-        // compare the 10000 results from imageSearchResults and textSearchResults seeing if any match
+        const textListingIds = new Set(textSearchResults.map(item => item.id))
+        const matching = imageSearchResults.filter(item => textListingIds.has(item.id))
+        setMatchingItems(matching);
+        setMatchingItemSearch(true);
     }
 
     // This is the formatting for the results, rework it as needed
@@ -130,6 +135,7 @@ export default function Camera() {
                 console.log('Found items: ', results.length);
                 setTextSearchResults(results);
                 setSearchResults(results);
+                console.log(results)
                 setSearchResultModal(true);
             }).catch((error) => {
                 console.log('Error Searching eBay with text:', error);
@@ -151,17 +157,12 @@ export default function Camera() {
     }
 
     const searchSold = () => {
-
         if (text === '') {
             alert("Must Enter Search");
         } else {
-            // Temporary history location, will be updated to only store 10 most recent searches aswell as if a duplicate search is made, then will update the location
-            setHistory([...history, text]);
-            alert(history);
             setSoldModal(true);
             setSoldPage(`https://www.ebay.com/sch/i.html?_nkw=${text}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`);
         }
-
     }
 
     return (
