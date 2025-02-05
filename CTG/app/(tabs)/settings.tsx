@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import {View,Text,Switch,StyleSheet,TouchableOpacity,Alert, Platform,} from "react-native";
+import {
+  View,
+  Text,
+  Switch,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
@@ -7,10 +14,14 @@ import { useTextScale } from "../context/TextScaleContext";
 import { auth } from "../firebaseconfig/firebase";
 import { useRouter } from "expo-router";
 
-// If you want a type for the dropdown items:
 type FontScaleOption = {
   label: string;
   value: number;
+};
+
+type LanguageOption = {
+  label: string;
+  value: string;
 };
 
 const Settings: React.FC = () => {
@@ -18,14 +29,22 @@ const Settings: React.FC = () => {
   const { fontScale, setFontScale } = useTextScale();
   const router = useRouter();
 
-  // State for DropDownPicker
-  const [open, setOpen] = useState<boolean>(false);
-  const [value, setValue] = useState<number>(fontScale);
+  // Text scale picker state
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(fontScale);
   const [items, setItems] = useState<FontScaleOption[]>([
     { label: "Small", value: 0.8 },
     { label: "Normal", value: 1 },
     { label: "Large", value: 1.2 },
     { label: "X-Large", value: 1.5 },
+  ]);
+
+  // Language picker state
+  const [langOpen, setLangOpen] = useState(false);
+  const [langValue, setLangValue] = useState("en");
+  const [langItems, setLangItems] = useState<LanguageOption[]>([
+    { label: "English", value: "en" },
+    { label: "Español", value: "es" },
   ]);
 
   const handleLogout = async () => {
@@ -35,17 +54,19 @@ const Settings: React.FC = () => {
       router.replace("/Pages/LoginPage");
     } catch (error) {
       console.error("Logout error:", error);
-      Alert.alert(
-        "Error",
-        "An error occurred while logging out. Please try again."
-      );
+      Alert.alert("Error", "An error occurred while logging out. Please try again.");
     }
   };
 
-  // When an item is selected in the dropdown, update both local state and global text scale
-  const handleSetValue = (selectedValue: any) => {
+  // When a new font scale is selected
+  const handleSetValue = (selectedValue: number) => {
     setValue(selectedValue);
     setFontScale(selectedValue);
+  };
+
+  // Placeholder language setter (does nothing else yet)
+  const handleSetLanguage = (selectedLang: string) => {
+    setLangValue(selectedLang);
   };
 
   return (
@@ -55,13 +76,11 @@ const Settings: React.FC = () => {
         { backgroundColor: isDarkMode ? "#000" : "#fff" },
       ]}
     >
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => router.back()}
-            >
-              
+      {/* Back Button */}
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Text style={styles.backButtonText}>{"<"} Back</Text>
       </TouchableOpacity>
+
       {/* Title */}
       <Text
         style={[
@@ -90,8 +109,8 @@ const Settings: React.FC = () => {
         />
       </View>
 
-      {/* Text Scaling Dropdown */}
-      <View style={styles.pickerContainer}>
+      {/* Text Size Picker */}
+      <View style={[styles.pickerContainer, {marginBottom: 35}]}>
         <Text
           style={{
             color: isDarkMode ? "#fff" : "#000",
@@ -108,7 +127,6 @@ const Settings: React.FC = () => {
           setOpen={setOpen}
           setValue={handleSetValue}
           setItems={setItems}
-          // Style the dropdown itself
           style={[
             styles.dropDown,
             {
@@ -116,12 +134,51 @@ const Settings: React.FC = () => {
               borderColor: isDarkMode ? "#555" : "#ccc",
             },
           ]}
-          // Text inside the dropdown button
           textStyle={{
             color: isDarkMode ? "#fff" : "#000",
             fontSize: 16 * fontScale,
           }}
-          // The open dropdown list container
+          dropDownContainerStyle={{
+            backgroundColor: isDarkMode ? "#333" : "#f4f4f4",
+            borderColor: isDarkMode ? "#555" : "#ccc",
+          }}
+          placeholderStyle={{
+            color: isDarkMode ? "#ccc" : "#888",
+          }}
+          
+        />
+      </View>
+      
+      {/* Language Picker */}
+      <View style={styles.pickerContainer}>
+        <Text
+          style={{
+            color: isDarkMode ? "#fff" : "#000",
+            fontSize: 16 * fontScale,
+            marginBottom: 8,
+            marginTop: 16,
+          }}
+        >
+          Language
+        </Text>
+        <DropDownPicker
+          open={langOpen}
+          value={langValue}
+          items={langItems}
+          setOpen={setLangOpen}
+          setValue={handleSetLanguage}
+          setItems={setLangItems}
+          style={[
+            styles.dropDown,
+            {
+              backgroundColor: isDarkMode ? "#333" : "#f4f4f4",
+              borderColor: isDarkMode ? "#555" : "#ccc",
+            },
+          ]}
+          textStyle={{
+            color: isDarkMode ? "#fff" : "#000",
+            fontSize: 16 * fontScale,
+          }}
           dropDownContainerStyle={{
             backgroundColor: isDarkMode ? "#333" : "#f4f4f4",
             borderColor: isDarkMode ? "#555" : "#ccc",
@@ -160,7 +217,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     marginBottom: 12,
-    top: 15
+    top: 15,
   },
   switchContainer: {
     marginTop: 16,
@@ -185,7 +242,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-
   backButton: {
     position: "absolute",
     top: 20,
