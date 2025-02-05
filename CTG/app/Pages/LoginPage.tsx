@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, TextInput, TouchableOpacity, Alert,StyleSheet} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from "react-native";
 import "../../global.css";
 import { useTheme } from "../context/ThemeContext";
-import { handleLogin } from "../(auth)/login"; 
+import { handleLogin } from "../(auth)/login";
 import { useRouter } from "expo-router";
 
 export default function LoginPage() {
@@ -25,7 +25,7 @@ export default function LoginPage() {
       Alert.alert("Error", message);
     }
   };
-  const navigatetoRegister = async() => {
+  const navigatetoRegister = async () => {
 
     router.push("/Pages/RegisterPage");
   };
@@ -49,9 +49,8 @@ export default function LoginPage() {
             Email ID
           </Text>
           <TextInput
-            className={`border rounded px-3 py-2 ${
-              isDarkMode ? "border-gray-500 text-white" : "border-gray-300"
-            }`}
+            className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"
+              }`}
             placeholder="Enter your email"
             placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
             autoCapitalize="none"
@@ -67,9 +66,8 @@ export default function LoginPage() {
             Password
           </Text>
           <TextInput
-            className={`border rounded px-3 py-2 ${
-              isDarkMode ? "border-gray-500 text-white" : "border-gray-300"
-            }`}
+            className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"
+              }`}
             placeholder="Enter your password"
             placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
             secureTextEntry
@@ -89,17 +87,11 @@ export default function LoginPage() {
         {/* Register Button */}
         <TouchableOpacity onPress={navigatetoRegister}>
           <Text
-            className={`underline ${isDarkMode ? "text-green-400" :  "text-green-600"}`}
-            >
-              Create an Account
-            </Text>
-        <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => router.back()}
-                    >
-                      
-                <Text style={styles.backButtonText}>{"<"} Back</Text>
-              </TouchableOpacity>    
+            className={`underline ${isDarkMode ? "text-green-400" : "text-green-600"}`}
+          >
+            Create an Account
+          </Text>
+
         </TouchableOpacity>
       </View>
     </SafeAreaView>

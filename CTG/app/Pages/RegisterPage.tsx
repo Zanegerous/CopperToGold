@@ -38,6 +38,13 @@ export default function RegisterPage() {
     <SafeAreaView
       className={`flex-1 px-4 ${isDarkMode ? "bg-black" : "bg-white"}`}
     >
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+      >
+
+        <Text style={styles.backButtonText}>{"<"} Back</Text>
+      </TouchableOpacity>
       <View className="mt-10 mb-8 items-center">
         <Text
           className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-black"}`}
@@ -53,9 +60,8 @@ export default function RegisterPage() {
             Email ID
           </Text>
           <TextInput
-            className={`border rounded px-3 py-2 ${
-              isDarkMode ? "border-gray-500 text-white" : "border-gray-300"
-            }`}
+            className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"
+              }`}
             placeholder="Enter your email"
             placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
             autoCapitalize="none"
@@ -71,9 +77,8 @@ export default function RegisterPage() {
             Password
           </Text>
           <TextInput
-            className={`border rounded px-3 py-2 ${
-              isDarkMode ? "border-gray-500 text-white" : "border-gray-300"
-            }`}
+            className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"
+              }`}
             placeholder="Enter your password"
             placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
             secureTextEntry
@@ -87,13 +92,7 @@ export default function RegisterPage() {
         >
           <Text className="text-center text-white text-lg">Register</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-          >
-                              
-          <Text style={styles.backButtonText}>{"<"} Back</Text>
-          </TouchableOpacity>    
+
       </View>
     </SafeAreaView>
   );
@@ -102,8 +101,7 @@ export default function RegisterPage() {
 const styles = StyleSheet.create({
   backButton: {
     position: "absolute",
-    bottom: 610,
-    left: -14,
+    left: 6,
     backgroundColor: "#ccc",
     paddingVertical: 6,
     paddingHorizontal: 10,

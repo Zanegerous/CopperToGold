@@ -8,6 +8,8 @@ import * as FileConversion from 'expo-file-system'
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { onAuthStateChanged, User } from "firebase/auth";
 import * as SplashScreen from 'expo-splash-screen';
+import { auth } from "../firebaseconfig/firebase";
+import { useTheme } from "../context/ThemeContext";
 
 interface EbayItem {
   title: string;
@@ -75,7 +77,7 @@ export default function Index() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       if (user) {
-        console.log("USER IS LOGGED IN: " , user);
+        console.log("USER IS LOGGED IN: ", user);
       }
       setLoading(false);
     });
@@ -85,7 +87,7 @@ export default function Index() {
 
   // when the page is done loading hide the splash screen
   useEffect(() => {
-    if(!loading) SplashScreen.hide()
+    if (!loading) SplashScreen.hide()
   }, [loading])
   if (!permission) {
     return <View />;
@@ -431,9 +433,9 @@ export default function Index() {
 
         {/* Search View Modal */}
         <Modal visible={searchResultModal}>
-          <SafeAreaView className="flex-1 bg-sky-800">
+          <SafeAreaView className="flex-1 bg-blue-dark">
 
-            <TouchableOpacity className="bg-blue-300 rounded-lg w-1/4 justify-center self-left px-1 mt-4 ml-4 mb-4  "
+            <TouchableOpacity className=" self-left px-1 mt-4 ml-2  "
               onPress={() => {
                 setSearchResultModal(false);
                 setText('');
@@ -444,7 +446,7 @@ export default function Index() {
                 setTextSearchResults([]);
                 setMatchingItems(null)
               }}>
-              <Text className="text-blue-600 text-center text-l">Close Results</Text>
+              <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
             </TouchableOpacity>
 
             <View className=" w-5/6 self-center relative mt-0 flex-row">
@@ -480,12 +482,12 @@ export default function Index() {
                   setMatchingItems(null);
                   setCameraOpen(true);
                 }}>
-                  {<Icon name='camera' size={40} className=" w-12 h-12 rounded-xl z-10" />}
+                  {<Icon name='camera' size={40} color={'orange'} className=" w-12 h-12 rounded-xl z-10" />}
                 </TouchableOpacity>
               )}
             </View>
 
-            <View className="">
+            <View className="border-t-4 mt-2 rounded-m bg-blue-dark-200">
               {(searchResults || matchingItems) ? (
                 <FlatList
                   data={matchingItems ? matchingItems : searchResults}
@@ -493,7 +495,7 @@ export default function Index() {
                   keyExtractor={(item) => item.id}
                   numColumns={2}
                   columnWrapperStyle={{ justifyContent: 'space-between' }}
-                  contentContainerStyle={{ padding: 10 }}
+                  contentContainerStyle={{ padding: 25 }}
 
 
                 />
@@ -521,7 +523,7 @@ export default function Index() {
 const styles = {
   BackgroundView: [
     'flex-1',
-    'bg-navy-100',
+    'bg-blue-dark-100',
     'w-screen',
     'h-screen',
     'items-center',

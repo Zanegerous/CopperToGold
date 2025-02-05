@@ -86,10 +86,11 @@ const Settings: React.FC = () => {
         { backgroundColor: isDarkMode ? "#000" : "#fff" },
       ]}
     >
-      {/* Back Button */}
+      {/* Back Button 
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Text style={styles.backButtonText}>{"<"} Back</Text>
       </TouchableOpacity>
+      */}
 
       {/* Title */}
       <Text
@@ -120,7 +121,7 @@ const Settings: React.FC = () => {
       </View>
 
       {/* Text Size Picker */}
-      <View style={[styles.pickerContainer, {marginBottom: 35}]}>
+      <View style={[styles.pickerContainer, { marginBottom: 35 }]}>
         <Text
           style={{
             color: isDarkMode ? "#fff" : "#000",
@@ -155,10 +156,10 @@ const Settings: React.FC = () => {
           placeholderStyle={{
             color: isDarkMode ? "#ccc" : "#888",
           }}
-          
+
         />
       </View>
-      
+
       {/* Language Picker */}
       <View style={styles.pickerContainer}>
         <Text
@@ -183,6 +184,7 @@ const Settings: React.FC = () => {
             {
               backgroundColor: isDarkMode ? "#333" : "#f4f4f4",
               borderColor: isDarkMode ? "#555" : "#ccc",
+              zIndex: 10
             },
           ]}
           textStyle={{
@@ -196,6 +198,7 @@ const Settings: React.FC = () => {
           placeholderStyle={{
             color: isDarkMode ? "#ccc" : "#888",
           }}
+
         />
       </View>
 
@@ -216,7 +219,7 @@ const Settings: React.FC = () => {
 
       {/* Delete Account */}
       {/* Button that opens warning modal */}
-      <TouchableOpacity style={[ styles.logoutButton, { backgroundColor: "#f00" }, ]} onPress={() => setIsModalOpen(true)}>
+      <TouchableOpacity style={[styles.logoutButton, { backgroundColor: "#f00" },]} onPress={() => setIsModalOpen(true)}>
         <Text style={[styles.logoutText, { color: isDarkMode ? "#fff" : "#fff" }]}>Delete Account</Text>
       </TouchableOpacity>
       {/* Inside of modal have warning msg and del account button */}
@@ -237,7 +240,7 @@ const Settings: React.FC = () => {
               <Text style={[styles.logoutText, { color: isDarkMode ? "#fff" : "#fff" }]}> Delete Account </Text>
             </TouchableOpacity>
             {/* Cancel button (just closes modal) */}
-            <TouchableOpacity style={[ styles.logoutButton, { backgroundColor: isDarkMode ? "#fff" : "#000" }, ]} onPress={() => setIsModalOpen(false)}>
+            <TouchableOpacity style={[styles.logoutButton, { backgroundColor: isDarkMode ? "#fff" : "#000" },]} onPress={() => setIsModalOpen(false)}>
               <Text className="text-center font-light text-2xl text-white">Cancel</Text>
             </TouchableOpacity>
           </View>
@@ -257,7 +260,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     marginBottom: 12,
-    top: 15,
+    top: 20,
   },
   switchContainer: {
     marginTop: 16,
