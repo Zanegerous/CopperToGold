@@ -43,7 +43,7 @@ export default function Index() {
     if(!loading) SplashScreen.hide()
   }, [loading])
 
-  // Example button press functions
+  // Simple button handler
   const buttonPress = () => {
     alert("Button Pressed, I'll open the modal");
     setIsModalOpen(true);
@@ -132,3 +132,28 @@ export default function Index() {
     )
   }
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  button: {
+    borderRadius: 10,
+    width: "40%",
+    height: 40,
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  closeButton: {
+    width: 120,
+    padding: 12,
+    borderRadius: 10,
+  },
+});

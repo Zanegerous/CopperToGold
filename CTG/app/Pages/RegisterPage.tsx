@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from "react-native";
 import "../../global.css";
 import { useTheme } from "../context/ThemeContext";
 import { registerWithEmailAndPassword } from "../(auth)/register";
@@ -87,7 +87,30 @@ export default function RegisterPage() {
         >
           <Text className="text-center text-white text-lg">Register</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+          >
+                              
+          <Text style={styles.backButtonText}>{"<"} Back</Text>
+          </TouchableOpacity>    
       </View>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  backButton: {
+    position: "absolute",
+    bottom: 610,
+    left: -14,
+    backgroundColor: "#ccc",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: "#000",
+  },
+})

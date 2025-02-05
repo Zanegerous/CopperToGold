@@ -1,16 +1,46 @@
 import React, { useState } from "react";
 import { View, Text, Switch, StyleSheet, TouchableOpacity, Alert, Modal } from "react-native";
+import DropDownPicker from "react-native-dropdown-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
+import { useTextScale } from "../context/TextScaleContext";
 import { auth } from "../firebaseconfig/firebase";
 import { useRouter } from "expo-router";
 
-export default function Settings() {
+type FontScaleOption = {
+  label: string;
+  value: number;
+};
+
+type LanguageOption = {
+  label: string;
+  value: string;
+};
+
+const Settings: React.FC = () => {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { fontScale, setFontScale } = useTextScale();
   const router = useRouter();
 
-  // Firebase logout function
+  // Text scale picker state
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(fontScale);
+  const [items, setItems] = useState<FontScaleOption[]>([
+    { label: "Small", value: 0.8 },
+    { label: "Normal", value: 1 },
+    { label: "Large", value: 1.2 },
+    { label: "X-Large", value: 1.5 },
+  ]);
+
+  // Language picker state
+  const [langOpen, setLangOpen] = useState(false);
+  const [langValue, setLangValue] = useState("en");
+  const [langItems, setLangItems] = useState<LanguageOption[]>([
+    { label: "English", value: "en" },
+    { label: "Español", value: "es" },
+  ]);
+
   const handleLogout = async () => {
     try {
       await auth.signOut();
@@ -38,6 +68,17 @@ export default function Settings() {
     }
   };
 
+  // When a new font scale is selected
+  const handleSetValue = (selectedValue: number) => {
+    setValue(selectedValue);
+    setFontScale(selectedValue);
+  };
+
+  // Placeholder language setter (does nothing else yet)
+  const handleSetLanguage = (selectedLang: string) => {
+    setLangValue(selectedLang);
+  };
+
   return (
     <SafeAreaView
       style={[
@@ -45,14 +86,29 @@ export default function Settings() {
         { backgroundColor: isDarkMode ? "#000" : "#fff" },
       ]}
     >
-      {/* Top title */}
-      <Text style={[styles.title, { color: isDarkMode ? "#fff" : "#000" }]}>
+      {/* Back Button */}
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <Text style={styles.backButtonText}>{"<"} Back</Text>
+      </TouchableOpacity>
+
+      {/* Title */}
+      <Text
+        style={[
+          styles.title,
+          { color: isDarkMode ? "#fff" : "#000", fontSize: 18 * fontScale },
+        ]}
+      >
         Welcome to the settings page
       </Text>
 
-      {/* Switch row */}
+      {/* Dark Mode Switch */}
       <View style={styles.switchContainer}>
-        <Text style={{ color: isDarkMode ? "#fff" : "#000" }}>
+        <Text
+          style={{
+            color: isDarkMode ? "#fff" : "#000",
+            fontSize: 16 * fontScale,
+          }}
+        >
           Dark Mode
         </Text>
         <Switch
@@ -63,15 +119,97 @@ export default function Settings() {
         />
       </View>
 
+      {/* Text Size Picker */}
+      <View style={[styles.pickerContainer, {marginBottom: 35}]}>
+        <Text
+          style={{
+            color: isDarkMode ? "#fff" : "#000",
+            fontSize: 16 * fontScale,
+            marginBottom: 8,
+          }}
+        >
+          Text Size
+        </Text>
+        <DropDownPicker
+          open={open}
+          value={value}
+          items={items}
+          setOpen={setOpen}
+          setValue={handleSetValue}
+          setItems={setItems}
+          style={[
+            styles.dropDown,
+            {
+              backgroundColor: isDarkMode ? "#333" : "#f4f4f4",
+              borderColor: isDarkMode ? "#555" : "#ccc",
+            },
+          ]}
+          textStyle={{
+            color: isDarkMode ? "#fff" : "#000",
+            fontSize: 16 * fontScale,
+          }}
+          dropDownContainerStyle={{
+            backgroundColor: isDarkMode ? "#333" : "#f4f4f4",
+            borderColor: isDarkMode ? "#555" : "#ccc",
+          }}
+          placeholderStyle={{
+            color: isDarkMode ? "#ccc" : "#888",
+          }}
+          
+        />
+      </View>
+      
+      {/* Language Picker */}
+      <View style={styles.pickerContainer}>
+        <Text
+          style={{
+            color: isDarkMode ? "#fff" : "#000",
+            fontSize: 16 * fontScale,
+            marginBottom: 8,
+            marginTop: 16,
+          }}
+        >
+          Language
+        </Text>
+        <DropDownPicker
+          open={langOpen}
+          value={langValue}
+          items={langItems}
+          setOpen={setLangOpen}
+          setValue={handleSetLanguage}
+          setItems={setLangItems}
+          style={[
+            styles.dropDown,
+            {
+              backgroundColor: isDarkMode ? "#333" : "#f4f4f4",
+              borderColor: isDarkMode ? "#555" : "#ccc",
+            },
+          ]}
+          textStyle={{
+            color: isDarkMode ? "#fff" : "#000",
+            fontSize: 16 * fontScale,
+          }}
+          dropDownContainerStyle={{
+            backgroundColor: isDarkMode ? "#333" : "#f4f4f4",
+            borderColor: isDarkMode ? "#555" : "#ccc",
+          }}
+          placeholderStyle={{
+            color: isDarkMode ? "#ccc" : "#888",
+          }}
+        />
+      </View>
+
       {/* Logout Button */}
       <TouchableOpacity
-        style={[
-          styles.logoutButton,
-          { backgroundColor: "#f00" },
-        ]}
+        style={[styles.logoutButton, { backgroundColor: "#f00" }]}
         onPress={handleLogout}
       >
-        <Text style={[styles.logoutText, { color: isDarkMode ? "#fff" : "#fff" }]}>
+        <Text
+          style={[
+            styles.logoutText,
+            { color: "#fff", fontSize: 16 * fontScale },
+          ]}
+        >
           Logout
         </Text>
       </TouchableOpacity>
@@ -107,7 +245,9 @@ export default function Settings() {
       </Modal>
     </SafeAreaView>
   );
-}
+};
+
+export default Settings;
 
 const styles = StyleSheet.create({
   container: {
@@ -116,13 +256,21 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    marginBottom: 12, // space below the title
+    marginBottom: 12,
+    top: 15,
   },
   switchContainer: {
     marginTop: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  pickerContainer: {
+    marginTop: 16,
+    width: "100%",
+  },
+  dropDown: {
+    borderWidth: 1,
   },
   logoutButton: {
     marginTop: 32,
@@ -133,5 +281,18 @@ const styles = StyleSheet.create({
   logoutText: {
     fontSize: 16,
     fontWeight: "bold",
+  },
+  backButton: {
+    position: "absolute",
+    top: 20,
+    left: 10,
+    backgroundColor: "#ccc",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: "#000",
   },
 });
