@@ -1,30 +1,47 @@
-// app/index.tsx
-import React, { useState } from "react";
-import {Modal,Text,TouchableOpacity,View,StyleSheet, SafeAreaView,} from "react-native";
-import { useRouter, Redirect } from "expo-router";
-import { auth } from "../firebaseconfig/firebase";
+import { Modal, Text, TouchableOpacity, View } from "react-native";
+import "../../global.css";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useEffect, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
-import { useTextScale } from "../context/TextScaleContext";
+import { Redirect } from "expo-router";
+import { auth } from "../firebaseconfig/firebase";
+import { onAuthStateChanged, User } from "firebase/auth";
+import * as SplashScreen from 'expo-splash-screen';
+
+// Keep the splash screen visible while we fetch the auth status
+SplashScreen.preventAutoHideAsync();
 
 export default function Index() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(auth.currentUser)
+  const [loading, setLoading] = useState(true); // This solves race condition, see note below
+  const { isDarkMode } = useTheme(); // This is for accessing darkmode from ThemeContext
 
-  // Access the router for going back
-  const router = useRouter();
+  /*
+  * This comment is explaining the race condition. It's related to authentication persistance.
+  * Firebase has a built in function for auth persistance, and react has an integration for that persistance.
 
-  // Current logged-in user
-  const user = auth.currentUser;
+  * HOWEVER, when I set everything up in index, I found out there's a really funny interaction: user defaults to null until it communicates with firebase and actually sets user. For whatever reason, this isn't considered async so there's no await. So, the page loads, sees that user is null, and automatically redirects to the login page before firebase can come in and confirm the user is logged in.
 
-  // Access dark mode from ThemeContext
-  const { isDarkMode } = useTheme();
+  * My solution was to add a loading state that defaults to true, and set it to false in the first useEffect. Then, if the page is loading it displays the splash screen, and once it's done loading it either displays the home page or brings you to the login page. */
 
-  // Access your chosen fontScale from TextScaleContext
-  const { fontScale } = useTextScale();
+  // Everytime the auth state changes (such as firebase loading the persisted user), this sets the user to whatever the new user state is (either the user who is logged in, or null), then sets loading to false.
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      if (user) {
+        console.log("USER IS LOGGED IN: " , user);
+      }
+      setLoading(false);
+    });
 
-  // If no user is logged in, redirect
-  if (!user) {
-    return <Redirect href="/Pages/LoginPage" />;
-  }
+    return () => unsubscribe();
+  }, [user]);
+
+  // when the page is done loading hide the splash screen
+  useEffect(() => {
+    if(!loading) SplashScreen.hide()
+  }, [loading])
 
   // Simple button handler
   const buttonPress = () => {
@@ -32,82 +49,88 @@ export default function Index() {
     setIsModalOpen(true);
   };
 
-  return (
-    <SafeAreaView
-      style={[
-        styles.container,
-        { backgroundColor: isDarkMode ? "black" : "blue" },
-      ]}
-    >
-
-      <Text
-        style={{
-          textAlign: "center",
-          fontSize: 30 * fontScale,
-          color: isDarkMode ? "#FFFFFF" : "#000000",
-          marginBottom: 16,
-        }}
-      >
-        Welcome to the home page
-      </Text>
-
-      {/* Example button that opens a modal */}
-      <TouchableOpacity
-        onPress={buttonPress}
-        style={[
-          styles.button,
-          { backgroundColor: isDarkMode ? "#555" : "#000" },
-        ]}
+  // Render home page is user is logged in and everything is loaded
+  if (!loading && user){
+    return (
+      <SafeAreaView
+        className={`flex-1 items-center justify-center ${isDarkMode ? "bg-black" : "bg-blue-600"
+          }`}
       >
         <Text
-          style={{
-            color: "#fff",
-            textAlign: "center",
-            fontSize: 20 * fontScale,
-          }}
+          className={`text-center text-3xl ${isDarkMode ? "text-white" : "text-black"
+            }`}
         >
-          Button Example
+          Welcome to the home page
         </Text>
-      </TouchableOpacity>
-
-      {/* Modal that uses the same contexts */}
-      <Modal visible={isModalOpen} animationType="slide">
-        <SafeAreaView
-          style={[
-            styles.modalContainer,
-            { backgroundColor: isDarkMode ? "#222" : "orange" },
-          ]}
+  
+        {/* Button Example */}
+        <TouchableOpacity
+          onPress={buttonPress}
+          className={`${isDarkMode ? "bg-gray-700" : "bg-black"
+            } rounded-b-lg rounded-t-2xl w-1/3 h-8 justify-center`}
         >
           <Text
-            style={{
-              fontSize: 36 * fontScale,
-              color: isDarkMode ? "#fff" : "#000",
-              marginBottom: 24,
-            }}
+            className={`${isDarkMode ? "text-emerald-300" : "text-emerald-500"
+              } text-center text-2xl`}
           >
-            Ok I opened
+            Button Example
           </Text>
-          <TouchableOpacity
-            onPress={() => setIsModalOpen(false)}
-            style={[
-              styles.closeButton,
-              { backgroundColor: isDarkMode ? "#888" : "#ddd" },
-            ]}
+        </TouchableOpacity>
+  
+        <Modal visible={isModalOpen}>
+          <SafeAreaView
+            className={`${isDarkMode ? "bg-gray-800" : "bg-orange-600"
+              } flex-1`}
           >
             <Text
-              style={{
-                textAlign: "center",
-                color: isDarkMode ? "#000" : "#333",
-                fontSize: 18 * fontScale,
-              }}
+              className={`text-6xl p-2 font-light text-center ${isDarkMode ? "bg-gray-900 text-white" : "bg-red-700 text-black"
+                } absolute top-5`}
             >
-              Close Modal
+              Ok I opened
             </Text>
-          </TouchableOpacity>
-        </SafeAreaView>
-      </Modal>
-    </SafeAreaView>
-  );
+  
+            <TouchableOpacity
+              onPress={() => setIsModalOpen(false)}
+              className={`w-48 ${isDarkMode ? "bg-gray-500" : "bg-slate-100"
+                } p-2 rounded-xl self-center absolute bottom-4`}
+            >
+              <Text
+                className={`text-center ${isDarkMode ? "text-black" : "text-gray-700"
+                  }`}
+              >
+                Close Modal
+              </Text>
+            </TouchableOpacity>
+          </SafeAreaView>
+        </Modal>
+      </SafeAreaView>
+    );
+  }
+
+  // Redirect to login page if user isn't logged in and everything is loaded
+  if (!loading && !user) {
+    console.log("USER IS NULL, AND THUS NOT LOGGED IN");
+    return <Redirect href="/Pages/LoginPage" />;
+  };
+
+  /*
+  * While loading, display that the page is loading
+  * This should always be behind the splash screen, but I'm leaving it here anyways just to be safe */
+  if(loading){
+    return(
+      <SafeAreaView
+        className={`flex-1 items-center justify-center ${isDarkMode ? "bg-black" : "bg-blue-600"
+        }`}
+      >
+        <Text
+          className={`text-center text-3xl ${isDarkMode ? "text-white" : "text-black"
+            }`}
+        >
+          Loading...
+        </Text>
+      </SafeAreaView>
+    )
+  }
 }
 
 const styles = StyleSheet.create({

@@ -3,6 +3,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRef, useState } from 'react';
 import { Button, Text, TouchableOpacity, View, Modal, Image, TextInput, TouchableWithoutFeedback, Keyboard, StatusBar } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome'
+import { useRouter } from "expo-router";
 
 // https://docs.expo.dev/versions/latest/sdk/camera/ Expo camera Docs reference
 
@@ -13,6 +14,7 @@ export default function Camera() {
     const cameraRef = useRef(null);
     const [text, setText] = useState('');
     const [searchFocused, setSearchFocused] = useState(false);
+    const router = useRouter()
 
     let backgroundColor = 'bg-slate-900';
 
@@ -39,7 +41,15 @@ export default function Camera() {
         } else {
             alert('Null Camera')
         }
+        router.push("/searchResults");
 
+    }
+
+    const searchResults = () => {
+        alert("You Are Searching for " + text);
+        setText('');
+        Keyboard.dismiss();
+        router.push("/searchResults");
     }
 
     return (
@@ -47,8 +57,7 @@ export default function Camera() {
 
             <StatusBar barStyle={'light-content'} className='bg-zinc-900' />
 
-            {/* If a photoURI exists, display it */}
-            {photoURI && <Image source={{ uri: photoURI }} className="flex-1 " />}
+           
 
             {/* Search Input Space */}
 
@@ -61,14 +70,12 @@ export default function Camera() {
                     className={`w-2/3 absolute top-3 self-center  border-2 rounded-2xl h-12 
                         ${searchFocused ? 'border-blue-500 bg-blue-200' : 'border-black bg-gray-400'}`}
                 />
-
-                <TouchableOpacity onPress={() => { alert("You Are Searching for " + text); setText(''); Keyboard.dismiss() }} className=" absolute top-6 right-20 justify-left rounded-lg bg-transparent self-end h-6">
+                <TouchableOpacity onPress={() => { searchResults(); }} className=" absolute top-6 right-20 justify-left rounded-lg bg-transparent self-end h-6">
                     <Icon name="search" size={20} color='blue' />
                 </TouchableOpacity>
-
-
             </View>
-
+             {/* If a photoURI exists, display it */}
+             {photoURI && <Image source={{ uri: photoURI }} style={{height:'85%' }} className="top-16" />}
 
             {/* Opens Camera Modal */}
             <TouchableOpacity className="bg-blue-300 rounded-lg w-1/2 h-10 justify-center self-center absolute bottom-4" onPress={() => isCameraOpen(true)}>
@@ -76,7 +83,6 @@ export default function Camera() {
                     Open Camera
                 </Text>
             </TouchableOpacity>
-
 
             <Modal visible={cameraOpen}>
                 {/* Camera Element */}
