@@ -66,22 +66,10 @@ export default function Camera() {
     const renderItem = ({ item }: any) => (
         <TouchableOpacity
             onPress={() => { alert(item.title) }}
-            style={{
-                padding: 10,
-                width: 150,
-                marginVertical: 5,
-                marginHorizontal: 10,
-            }}
             className="bg-gray-500 border-black rounded-md border-spacing-4"
         >
             <Image
                 source={{ uri: item.image }}
-                style={{
-                    width: 120,
-                    height: 120,
-                    borderRadius: 8,
-                    marginBottom: 5,
-                }}
             />
             <Text className="text-center color-blue-900 font-bold">{item.title}</Text>
             <Text className="text-center">{item.price.currency} {item.price.value}</Text>
@@ -89,7 +77,7 @@ export default function Camera() {
         </TouchableOpacity>
     );
 
-    const takePicture = async (camera: { takePictureAsync: () => any; } | null) => {
+    const handleTakePicture = async (camera: { takePictureAsync: () => any; } | null) => {
         if (camera != null) {
             const photo = await camera.takePictureAsync();
             setPhotoUri(photo.uri)
@@ -132,7 +120,7 @@ export default function Camera() {
         setIsLoading(true)
         if (text != '') {
             await searchEbay(text).then((results) => {
-                console.log('Found items: ', results.length);
+                // console.log('Found items: ', results.length);
                 setTextSearchResults(results);
                 setSearchResults(results);
                 console.log(results)
@@ -168,98 +156,9 @@ export default function Camera() {
     return (
         <SafeAreaView style={{ flex: 1 }} className={backgroundColor}>
 
-            <StatusBar barStyle={'light-content'} className='bg-zinc-900' />
-
-            {/* Search Input Space */}
-            <View className="w-3/4 self-center">
-                <TextInput
-                    placeholder="Enter Here"
-                    value={text} onChangeText={setText}
-                    onFocus={() => setSearchFocused(true)}
-                    onBlur={() => setSearchFocused(false)}
-                    className={`w-2/3 absolute top-3 self-center  border-2 rounded-2xl h-12 
-                        ${searchFocused ? 'border-blue-500 bg-blue-200' : 'border-black bg-gray-400'}`}
-                />
-                <TouchableOpacity onPress={() => { searchTextResults(); }} className=" absolute top-6 right-20 justify-left rounded-lg bg-transparent self-end h-6">
-                    <Icon name="search" size={20} color='blue' />
-                </TouchableOpacity>
+            <View>
+                <Text className="text-center bg-white text-4xl top-8 w-5/6 self-center">Not In Use</Text>
             </View>
-
-            {/* If a photoURI exists, display it */}
-            {photoURI && <Image source={{ uri: photoURI }} style={{ height: '85%' }} className="top-16" />}
-
-            {/* Opens Camera Modal */}
-            <TouchableOpacity className="bg-blue-300 rounded-lg w-1/2 h-10 justify-center self-center absolute bottom-4" onPress={() => setCameraOpen(true)}>
-                <Text className="text-blue-600 text-center text-xl">
-                    Open Camera
-                </Text>
-            </TouchableOpacity>
-
-            <Modal visible={cameraOpen}>
-                {/* Camera Element. Cant disable shutter audio unfortunetly. may look into switching to react-native-vision-camera*/}
-                <CameraView
-                    ref={cameraRef}
-                    style={{ flex: 1 }}
-                    facing={'back'}
-                    mode="picture"
-                    mute={true}
-                    animateShutter={false}
-                    barcodeScannerSettings={{
-                        barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e", "code128", "code39", "itf14"]
-                    }}
-                    onBarcodeScanned={({ data }) => searchBarcodeResult(data)}
-                >
-                    {/*Button to close camera*/}
-                    <TouchableOpacity className="bg-blue-300 rounded-lg w-1/4 h-10 justify-center self-left px-1 absolute top-4 left-2" onPress={() => setCameraOpen(false)}>
-                        <Text className="text-blue-600 text-center text-l">Close Camera</Text>
-                    </TouchableOpacity>
-
-                    {/* Button to take picture */}
-                    <TouchableOpacity onPress={() => takePicture(cameraRef.current)} className=" rounded-full border-8 border-white absolute bottom-20 w-24 h-24 self-center ">
-
-                    </TouchableOpacity>
-                </CameraView>
-            </Modal>
-
-            {/* Search WebView Modal */}
-            <Modal visible={soldModal}>
-
-                <TouchableOpacity className="bg-blue-300 rounded-lg h-10 justify-center self-left px-1 absolute top-4 left-2" onPress={() => setSoldModal(false)}>
-                    <Icon name="arrow-left" size={35} color='red' />
-                </TouchableOpacity>
-
-                <View style={{ width: '100%', height: '100%' }} className="absolute top-16">
-                    <WebView style={{ height: '80%' }} source={{ uri: soldPage }} />
-                </View>
-            </Modal>
-
-            {/* Search View Modal */}
-            <Modal visible={searchResultModal}>
-                <SafeAreaView className="bg-green-400">
-                    <TouchableOpacity className="bg-blue-300 rounded-lg w-1/4 h-10 justify-center self-left px-1 absolute top-4 left-2" onPress={() => setSearchResultModal(false)}>
-                        <Text className="text-blue-600 text-center text-l">Close Results</Text>
-                    </TouchableOpacity>
-                    <View className="top-16">
-                        <FlatList
-                            data={searchResults}
-                            renderItem={renderItem}
-                            keyExtractor={(item) => item.title}
-                            numColumns={2}
-                            columnWrapperStyle={{ justifyContent: 'space-between' }}
-                            contentContainerStyle={{ padding: 15 }}
-
-                        />
-
-                    </View>
-
-                </SafeAreaView>
-            </Modal>
-
-            {isLoading && (
-                <View className="absolute top-0 left-0 right-0 bottom-0 justify-center align-middle">
-                    <ActivityIndicator size='large' color="white" />
-                </View>
-            )}
 
 
         </SafeAreaView>
