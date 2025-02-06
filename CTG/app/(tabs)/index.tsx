@@ -10,6 +10,7 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import * as SplashScreen from 'expo-splash-screen';
 import { auth } from "../firebaseconfig/firebase";
 import { useTheme } from "../context/ThemeContext";
+import { Redirect } from "expo-router";
 
 interface EbayItem {
   title: string;
@@ -291,233 +292,253 @@ export default function Index() {
       dualSearchMerge();
     }
   }
+  if (!loading && user) {
+    return (
+      <TouchableWithoutFeedback onPress={() => { if (text == '') { handleSearchClose(); /* if text is empty and user clicks outside input, close input*/ } }}>
+        <SafeAreaView className={styles.BackgroundView.join(' ') /* formats in stylesheet below example */} >
+          <StatusBar barStyle={'light-content'} className='bg-zinc-900' />
 
-  return (
-    <TouchableWithoutFeedback onPress={() => { if (text == '') { handleSearchClose(); /* if text is empty and user clicks outside input, close input*/ } }}>
-      <SafeAreaView className={styles.BackgroundView.join(' ') /* formats in stylesheet below example */} >
-        <StatusBar barStyle={'light-content'} className='bg-zinc-900' />
+          <TouchableOpacity onPress={() => { setSettingModal(true); }} className="left-1/3 ml-20 mt-2" style={{ zIndex: 10 }}>
+            <Icon name='gear' size={50} color='darkgrey' className="" />
+          </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => { setSettingModal(true); }} className="left-1/3 ml-20 mt-2" style={{ zIndex: 10 }}>
-          <Icon name='gear' size={50} color='darkgrey' className="" />
-        </TouchableOpacity>
+          {/* Title */}
+          <View className="flex-row items-center justify-center top-16 absolute">
+            <Text className={styles.TitleText.join(' ') + " text-orange-600"}>C</Text>
+            <Text className={styles.TitleText.join(' ') + " text-white"}>2</Text>
+            <Text className={styles.TitleText.join(' ') + " text-yellow-300"}>G</Text>
+          </View>
 
-        {/* Title */}
-        <View className="flex-row items-center justify-center top-16 absolute">
-          <Text className={styles.TitleText.join(' ') + " text-orange-600"}>C</Text>
-          <Text className={styles.TitleText.join(' ') + " text-white"}>2</Text>
-          <Text className={styles.TitleText.join(' ') + " text-yellow-300"}>G</Text>
-        </View>
+          <View className="top-1/4">
+            {/* Search Screen */}
+            {isExpanded ? (
+              <View className="w-3/4 self-center">
+                <View className="flex-row items-center justify-between">
+                  <Animated.View style={{ width: animatedWidth, top: animatedYPos }}>
+                    <TextInput
+                      placeholder="Enter Here"
+                      value={text} onChangeText={setText}
+                      onFocus={() => setSearchFocused(true)}
+                      onBlur={() => setSearchFocused(false)}
+                      autoFocus={true}
+                      onSubmitEditing={() => { handleSearch(); }}
+                      className={`w-full self-center border-2 rounded-2xl h-12 ${searchFocused ? 'border-blue-500 bg-blue-200' : 'border-black bg-gray-400'}`}
+                      ref={inputRef}
+                    />
+                    {/*If a history exists and input is open*/}
+                    {historyVisible && (history.length >= 1) ? (
+                      <View className="bg-slate-800 border-2 rounded-lg mt-1 h-32">
+                        <FlatList
+                          data={history}
+                          renderItem={renderHistory}
+                          keyExtractor={(item: any, index: any) => `${item}-${index}`}
+                          numColumns={1}
+                        />
+                      </View>
 
-        <View className="top-1/4">
-          {/* Search Screen */}
-          {isExpanded ? (
-            <View className="w-3/4 self-center">
-              <View className="flex-row items-center justify-between">
-                <Animated.View style={{ width: animatedWidth, top: animatedYPos }}>
-                  <TextInput
-                    placeholder="Enter Here"
-                    value={text} onChangeText={setText}
-                    onFocus={() => setSearchFocused(true)}
-                    onBlur={() => setSearchFocused(false)}
-                    autoFocus={true}
-                    onSubmitEditing={() => { handleSearch(); }}
-                    className={`w-full self-center border-2 rounded-2xl h-12 ${searchFocused ? 'border-blue-500 bg-blue-200' : 'border-black bg-gray-400'}`}
-                    ref={inputRef}
+                    ) : (
+
+                      <View />
+
+                    )}
+                  </Animated.View>
+                  {submitVisible ? (
+                    <TouchableOpacity onPress={() => { handleSearch(); }} className="absolute top-3 right-3">
+                      <Icon name="search" size={20} color='blue' />
+                    </TouchableOpacity>
+                  ) : (<View />)}
+                </View>
+              </View>
+
+            ) : (
+
+              <View>
+                {/* Default Screen */}
+                <TouchableOpacity
+                  className="bg-white h-16 w-56 justify-center items-center mt-8  rounded-lg"
+                  onPress={handleSearchOpen}
+                >
+                  <Text className="text-gray-600">Search</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  className="bg-white h-16 w-56 justify-center items-center mt-8  rounded-lg"
+                  onPress={() => { setCameraOpen(true) }}
+                >
+                  <Text className="text-gray-600">Open Camera</Text>
+                </TouchableOpacity>
+
+              </View>
+            )}
+          </View>
+
+          {/* Camera Element. Cant disable shutter audio unfortunetly. may look into switching to react-native-vision-camera*/}
+          <Modal visible={cameraOpen}>
+            <CameraView
+              ref={cameraRef}
+              style={{ flex: 1 }}
+              facing={'back'}
+              mode="picture"
+              mute={true}
+              animateShutter={false}
+              barcodeScannerSettings={{
+                barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e", "code128", "code39", "itf14"]
+              }}
+              onBarcodeScanned={({ data }) => searchBarcodeResult(data)}
+            >
+              {/*Button to close camera*/}
+              <TouchableOpacity className="bg-blue-300 rounded-lg w-1/4 h-10 justify-center self-left px-1 absolute top-4 left-2" onPress={() => setCameraOpen(false)}>
+                <Text className="text-blue-600 text-center text-l">Close Camera</Text>
+              </TouchableOpacity>
+
+              {/* Button to take picture */}
+              <TouchableOpacity onPress={() => takePicture(cameraRef.current)} className=" rounded-full border-8 border-white absolute bottom-20 w-24 h-24 self-center ">
+
+              </TouchableOpacity>
+            </CameraView>
+          </Modal>
+
+          {/* Settings Screen */}
+          <Modal visible={settingModal} transparent={true} animationType={'fade'} className="flex-1 ">
+            <View className="flex-1 justify-center align-middle items-center bg-black/50">
+              <View className="w-96 h-96 bg-slate-600 border-4 rounded-2xl ">
+
+                <TouchableOpacity onPress={() => setSettingModal(false)} className="w-12">
+                  <Icon name='times-circle' size={40} color='red' className="m-1" />
+                </TouchableOpacity>
+
+                <Text className="align-middle text-center font-semibold text-4xl text-white ">Search Settings</Text>
+
+                <View className="w-36 h-12 bg-white flex-row items-center justify-between p-2 mt-6 rounded-lg self-center border-2">
+                  <Text className="text-m">Auctions</Text>
+                  <Switch
+                    value={auctionSetting}
+                    onValueChange={toggleAuctionSetting}
+                    trackColor={{ true: "#767577", false: "#81b0ff" }}
+                    thumbColor={"#f5dd4b"}
                   />
-                  {/*If a history exists and input is open*/}
-                  {historyVisible && (history.length >= 1) ? (
-                    <View className="bg-slate-800 border-2 rounded-lg mt-1 h-32">
-                      <FlatList
-                        data={history}
-                        renderItem={renderHistory}
-                        keyExtractor={(item: any, index: any) => `${item}-${index}`}
-                        numColumns={1}
-                      />
-                    </View>
+                </View>
 
-                  ) : (
-
-                    <View />
-
-                  )}
-                </Animated.View>
-                {submitVisible ? (
-                  <TouchableOpacity onPress={() => { handleSearch(); }} className="absolute top-3 right-3">
-                    <Icon name="search" size={20} color='blue' />
-                  </TouchableOpacity>
-                ) : (<View />)}
+                <View className="w-36 h-12 bg-white flex-row items-center justify-between p-2  mt-4 rounded-lg self-center border-2">
+                  {usedSetting ? (<Text className="text-lg">Used</Text>) : (<Text className="text-lg">New</Text>)}
+                  <Switch
+                    value={usedSetting}
+                    onValueChange={toggleUsedSetting}
+                    trackColor={{ true: "#767577", false: "#81b0ff" }}
+                    thumbColor={"#f5dd4b"}
+                  />
+                </View>
               </View>
             </View>
+          </Modal>
 
-          ) : (
+          {/* Search View Modal */}
+          <Modal visible={searchResultModal}>
+            <SafeAreaView className="flex-1 bg-blue-dark">
 
-            <View>
-              {/* Default Screen */}
-              <TouchableOpacity
-                className="bg-white h-16 w-56 justify-center items-center mt-8  rounded-lg"
-                onPress={handleSearchOpen}
-              >
-                <Text className="text-gray-600">Search</Text>
+              <TouchableOpacity className=" self-left px-1 mt-4 ml-2  "
+                onPress={() => {
+                  setSearchResultModal(false);
+                  setText('');
+                  setIsImageSearchActive(false);
+                  setIsTextSearchActive(false);
+                  setPhotoUri(null);
+                  setImageSearchResults([]);
+                  setTextSearchResults([]);
+                  setMatchingItems(null)
+                }}>
+                <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
               </TouchableOpacity>
 
-              <TouchableOpacity
-                className="bg-white h-16 w-56 justify-center items-center mt-8  rounded-lg"
-                onPress={() => { setCameraOpen(true) }}
-              >
-                <Text className="text-gray-600">Open Camera</Text>
-              </TouchableOpacity>
+              <View className=" w-5/6 self-center relative mt-0 flex-row">
 
+                <TextInput
+                  placeholder="Enter Here"
+                  value={text} onChangeText={setText}
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setSearchFocused(false)}
+                  autoFocus={false}
+                  onSubmitEditing={() => { handleSearch(); }}
+                  className={`w-5/6 self-center border-2 rounded-2xl h-12 ${searchFocused ? 'border-blue-500 bg-blue-200' : 'border-black bg-gray-400'}`}
+                  ref={inputRef}
+                />
+
+                <TouchableOpacity onPress={() => { handleSearch(); }} className="absolute right-20 top-2 z-12">
+                  <Icon name="search" size={25} color='blue' />
+                </TouchableOpacity>
+
+                {photoURI ? (
+                  <TouchableOpacity className="absolute right-1" onPress={() => {
+                    setPhotoUri(null);
+                    setSearchResultModal(false);
+                    setMatchingItems(null);
+                    setCameraOpen(true);
+                  }}>
+                    {photoURI && <Image source={{ uri: photoURI }} className=" w-12 h-12 rounded-xl z-10" />}
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity className="absolute right-1" onPress={() => {
+                    setPhotoUri(null);
+                    setSearchResultModal(false);
+                    setMatchingItems(null);
+                    setCameraOpen(true);
+                  }}>
+                    {<Icon name='camera' size={40} color={'orange'} className=" w-12 h-12 rounded-xl z-10" />}
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <View className="border-t-4 mt-2 rounded-m bg-blue-dark-200">
+                {(searchResults || matchingItems) ? (
+                  <FlatList
+                    data={matchingItems ? matchingItems : searchResults}
+                    renderItem={renderResultItem}
+                    keyExtractor={(item) => item.id}
+                    numColumns={2}
+                    columnWrapperStyle={{ justifyContent: 'space-between' }}
+                    contentContainerStyle={{ padding: 25 }}
+
+
+                  />
+                ) : (
+                  <View className="bg-white text-2xl w-10/12 self-center">
+                    <Text className="text-3xl text-center">No Items Found</Text>
+                  </View>
+                )}
+
+              </View>
+
+            </SafeAreaView>
+          </Modal>
+
+          {isLoading && (
+            <View className="absolute top-0 left-0 right-0 bottom-0 justify-center align-middle bg-black/50">
+              <ActivityIndicator size='large' color="white" />
             </View>
           )}
-        </View>
+        </SafeAreaView>
+      </TouchableWithoutFeedback>
+    );
+  }
 
-        {/* Camera Element. Cant disable shutter audio unfortunetly. may look into switching to react-native-vision-camera*/}
-        <Modal visible={cameraOpen}>
-          <CameraView
-            ref={cameraRef}
-            style={{ flex: 1 }}
-            facing={'back'}
-            mode="picture"
-            mute={true}
-            animateShutter={false}
-            barcodeScannerSettings={{
-              barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e", "code128", "code39", "itf14"]
-            }}
-            onBarcodeScanned={({ data }) => searchBarcodeResult(data)}
-          >
-            {/*Button to close camera*/}
-            <TouchableOpacity className="bg-blue-300 rounded-lg w-1/4 h-10 justify-center self-left px-1 absolute top-4 left-2" onPress={() => setCameraOpen(false)}>
-              <Text className="text-blue-600 text-center text-l">Close Camera</Text>
-            </TouchableOpacity>
+  // Redirect to login page if user isn't logged in and everything is loaded
+  if (!loading && !user) {
+    console.log("USER IS NULL, AND THUS NOT LOGGED IN");
+    return <Redirect href="/Pages/LoginPage" />;
+  };
 
-            {/* Button to take picture */}
-            <TouchableOpacity onPress={() => takePicture(cameraRef.current)} className=" rounded-full border-8 border-white absolute bottom-20 w-24 h-24 self-center ">
-
-            </TouchableOpacity>
-          </CameraView>
-        </Modal>
-
-        {/* Settings Screen */}
-        <Modal visible={settingModal} transparent={true} animationType={'fade'} className="flex-1 ">
-          <View className="flex-1 justify-center align-middle items-center bg-black/50">
-            <View className="w-96 h-96 bg-slate-600 border-4 rounded-2xl ">
-
-              <TouchableOpacity onPress={() => setSettingModal(false)} className="w-12">
-                <Icon name='times-circle' size={40} color='red' className="m-1" />
-              </TouchableOpacity>
-
-              <Text className="align-middle text-center font-semibold text-4xl text-white ">Search Settings</Text>
-
-              <View className="w-36 h-12 bg-white flex-row items-center justify-between p-2 mt-6 rounded-lg self-center border-2">
-                <Text className="text-m">Auctions</Text>
-                <Switch
-                  value={auctionSetting}
-                  onValueChange={toggleAuctionSetting}
-                  trackColor={{ true: "#767577", false: "#81b0ff" }}
-                  thumbColor={"#f5dd4b"}
-                />
-              </View>
-
-              <View className="w-36 h-12 bg-white flex-row items-center justify-between p-2  mt-4 rounded-lg self-center border-2">
-                {usedSetting ? (<Text className="text-lg">Used</Text>) : (<Text className="text-lg">New</Text>)}
-                <Switch
-                  value={usedSetting}
-                  onValueChange={toggleUsedSetting}
-                  trackColor={{ true: "#767577", false: "#81b0ff" }}
-                  thumbColor={"#f5dd4b"}
-                />
-              </View>
-            </View>
-          </View>
-        </Modal>
-
-        {/* Search View Modal */}
-        <Modal visible={searchResultModal}>
-          <SafeAreaView className="flex-1 bg-blue-dark">
-
-            <TouchableOpacity className=" self-left px-1 mt-4 ml-2  "
-              onPress={() => {
-                setSearchResultModal(false);
-                setText('');
-                setIsImageSearchActive(false);
-                setIsTextSearchActive(false);
-                setPhotoUri(null);
-                setImageSearchResults([]);
-                setTextSearchResults([]);
-                setMatchingItems(null)
-              }}>
-              <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
-            </TouchableOpacity>
-
-            <View className=" w-5/6 self-center relative mt-0 flex-row">
-
-              <TextInput
-                placeholder="Enter Here"
-                value={text} onChangeText={setText}
-                onFocus={() => setSearchFocused(true)}
-                onBlur={() => setSearchFocused(false)}
-                autoFocus={false}
-                onSubmitEditing={() => { handleSearch(); }}
-                className={`w-5/6 self-center border-2 rounded-2xl h-12 ${searchFocused ? 'border-blue-500 bg-blue-200' : 'border-black bg-gray-400'}`}
-                ref={inputRef}
-              />
-
-              <TouchableOpacity onPress={() => { handleSearch(); }} className="absolute right-20 top-2 z-12">
-                <Icon name="search" size={25} color='blue' />
-              </TouchableOpacity>
-
-              {photoURI ? (
-                <TouchableOpacity className="absolute right-1" onPress={() => {
-                  setPhotoUri(null);
-                  setSearchResultModal(false);
-                  setMatchingItems(null);
-                  setCameraOpen(true);
-                }}>
-                  {photoURI && <Image source={{ uri: photoURI }} className=" w-12 h-12 rounded-xl z-10" />}
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity className="absolute right-1" onPress={() => {
-                  setPhotoUri(null);
-                  setSearchResultModal(false);
-                  setMatchingItems(null);
-                  setCameraOpen(true);
-                }}>
-                  {<Icon name='camera' size={40} color={'orange'} className=" w-12 h-12 rounded-xl z-10" />}
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <View className="border-t-4 mt-2 rounded-m bg-blue-dark-200">
-              {(searchResults || matchingItems) ? (
-                <FlatList
-                  data={matchingItems ? matchingItems : searchResults}
-                  renderItem={renderResultItem}
-                  keyExtractor={(item) => item.id}
-                  numColumns={2}
-                  columnWrapperStyle={{ justifyContent: 'space-between' }}
-                  contentContainerStyle={{ padding: 25 }}
-
-
-                />
-              ) : (
-                <View className="bg-white text-2xl w-10/12 self-center">
-                  <Text className="text-3xl text-center">No Items Found</Text>
-                </View>
-              )}
-
-            </View>
-
-          </SafeAreaView>
-        </Modal>
-
-        {isLoading && (
-          <View className="absolute top-0 left-0 right-0 bottom-0 justify-center align-middle bg-black/50">
-            <ActivityIndicator size='large' color="white" />
-          </View>
-        )}
+  /*
+  * While loading, display that the page is loading
+  * This should always be behind the splash screen, but I'm leaving it here anyways just to be safe */
+  if(loading){
+    return(
+      <SafeAreaView>
+        <Text>
+          Loading...
+        </Text>
       </SafeAreaView>
-    </TouchableWithoutFeedback>
-  );
+    )
+  }
 }
 
 const styles = {
