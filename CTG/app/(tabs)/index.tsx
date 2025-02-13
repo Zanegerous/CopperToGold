@@ -11,6 +11,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { auth } from "../firebaseconfig/firebase";
 import { useTheme } from "../context/ThemeContext";
 import { Redirect } from "expo-router";
+import WebView from "react-native-webview";
 
 interface EbayItem {
   title: string;
@@ -103,6 +104,15 @@ export default function Index() {
     );
   }
 
+  const searchSold = () => {
+    if (text === '') {
+      alert("Must Enter Search");
+    } else {
+      setSoldModal(true);
+      setSoldPageLink(`https://www.ebay.com/sch/i.html?_nkw=${text}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`);
+    }
+  }
+
   // Formatting for history to be output in history flatlist
   const renderHistory = ({ item }: { item: string }) => {
     return (
@@ -112,33 +122,73 @@ export default function Index() {
     );
   }
 
-  const renderResultItem = ({ item }: any) => (
-    <TouchableOpacity
-      onPress={() => { alert(item.title) }}
-      className="bg-gray-500 border-black rounded-md border-spacing-4 border-2 mb-4 mr-5 ml-5 w-40"
-    >
-      <Image
-        source={{ uri: item.image }}
-        className="w-36 h-36 m-1 rounded-lg"
-      />
-      <Text className="text-center color-blue-900 font-bold text-sm">{item.title}</Text>
-      <Text className="text-center">{item.price.currency} {item.price.value}</Text>
-      <Text className="text-center">{item.condition}</Text>
-    </TouchableOpacity>
-  );
+  // React Component that holds a modal with item information.
+  const RenderResultItem = ({ item }: any) => {
+    const [resultModal, setResultModal] = useState(false);
+    const soldPageLink = `https://www.ebay.com/sch/i.html?_nkw=${item.title}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`
+
+    return (
+      <TouchableOpacity
+        onPress={() => { setResultModal(true) }}
+        className="bg-gray-500 border-black rounded-md border-spacing-4 border-2 mb-4 mr-5 ml-5 w-40"
+      >
+        <Modal visible={resultModal} onRequestClose={() => { setResultModal(false) }}>
+          <View className="bg-blue-dark-100 flex-1">
+            <TouchableOpacity className=" self-left px-1 mt-4 ml-2  "
+              onPress={() => {
+                setResultModal(false)
+              }}>
+              <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
+            </TouchableOpacity>
+
+            <Image
+              source={{ uri: item.image }}
+              className="w-36 h-36 m-1 rounded-lg"
+            />
+            <Text className="text-center color-blue-900 font-bold text-sm">{item.title}</Text>
+            <Text className="text-center">{item.price.currency} {item.price.value}</Text>
+            <Text className="text-center">{item.condition}</Text>
+            <View className="w-full h-2/3 self-center p-5 bg-blue-dark-200">
+              <WebView
+                source={{ uri: soldPageLink }}
+                scalesPageToFit={true}
+              />
+            </View>
+          </View>
+
+        </Modal>
+        <Image
+          source={{ uri: item.image }}
+          className="w-36 h-36 m-1 rounded-lg"
+        />
+        <Text className="text-center color-blue-900 font-bold text-sm">{item.title}</Text>
+        <Text className="text-center">{item.price.currency} {item.price.value}</Text>
+        <Text className="text-center">{item.condition}</Text>
+      </TouchableOpacity>
+    )
+  };
+
+  const getAvgPrice = (list: EbayItem[] | null): number => {
+    if (list == null || list.length == 0) {
+      return 0;
+    } else {
+      const total = list.reduce((sum, item) => sum + parseFloat(item.price.value), 0);
+      const avg = total / list.length
+      return parseFloat(avg.toFixed(2));
+    }
+  };
 
   const dualSearchMerge = () => {
     const textListingIds = new Set(textSearchResults.map(item => item.id))
     const matching = imageSearchResults.filter(item => textListingIds.has(item.id))
     setMatchingItems(matching);
-    console.log(matching)
+    // console.log(matching)
   }
 
   const convertImageToBase64 = async (imageUri: string) => {
     const base64 = await FileConversion.readAsStringAsync(imageUri, {
       encoding: FileConversion.EncodingType.Base64,
     });
-    //console.log('Base64 Image:', base64); 
     return base64;
   };
 
@@ -164,10 +214,8 @@ export default function Index() {
 
   const searchImageResults = async (imageUri: string) => {
     const base64Image = await convertImageToBase64(imageUri);
-    // console.log(base64Image)
     setIsLoading(true)
     await searchEbayByImage(base64Image).then((results) => {
-      // console.log('Found items: ', results);
       setImageSearchResults(results);
       setSearchResults(results);
       setIsImageSearchActive(true)
@@ -187,12 +235,11 @@ export default function Index() {
     setIsLoading(true)
     if (text != '') {
       await searchEbay(text).then((results) => {
-        console.log('Found items: ', results.length);
         setTextSearchResults(results);
         setSearchResults(results);
-        //console.log(results)
         setIsTextSearchActive(true)
         setSearchResultModal(true);
+
       }).catch((error) => {
         console.log('Error Searching eBay with text:', error);
       }).finally(() => {
@@ -210,14 +257,7 @@ export default function Index() {
 
   }
 
-  const searchSold = () => {
-    if (text === '') {
-      alert("Must Enter Search");
-    } else {
-      setSoldModal(true);
-      setSoldPageLink(`https://www.ebay.com/sch/i.html?_nkw=${text}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`);
-    }
-  }
+
 
   // Animation for opening search bar
   const handleSearchOpen = () => {
@@ -292,6 +332,8 @@ export default function Index() {
       dualSearchMerge();
     }
   }
+
+  // This is the formatting for the home page
   if (!loading && user) {
     return (
       <TouchableWithoutFeedback onPress={() => { if (text == '') { handleSearchClose(); /* if text is empty and user clicks outside input, close input*/ } }}>
@@ -335,11 +377,8 @@ export default function Index() {
                           numColumns={1}
                         />
                       </View>
-
                     ) : (
-
                       <View />
-
                     )}
                   </Animated.View>
                   {submitVisible ? (
@@ -349,9 +388,7 @@ export default function Index() {
                   ) : (<View />)}
                 </View>
               </View>
-
             ) : (
-
               <View>
                 {/* Default Screen */}
                 <TouchableOpacity
@@ -373,7 +410,7 @@ export default function Index() {
           </View>
 
           {/* Camera Element. Cant disable shutter audio unfortunetly. may look into switching to react-native-vision-camera*/}
-          <Modal visible={cameraOpen}>
+          <Modal visible={cameraOpen} onRequestClose={() => { setCameraOpen(false) }}>
             <CameraView
               ref={cameraRef}
               style={{ flex: 1 }}
@@ -399,7 +436,7 @@ export default function Index() {
           </Modal>
 
           {/* Settings Screen */}
-          <Modal visible={settingModal} transparent={true} animationType={'fade'} className="flex-1 ">
+          <Modal visible={settingModal} transparent={true} animationType={'fade'} className="flex-1 " onRequestClose={() => { setSettingModal(false) }}>
             <View className="flex-1 justify-center align-middle items-center bg-black/50">
               <View className="w-96 h-96 bg-slate-600 border-4 rounded-2xl ">
 
@@ -433,25 +470,30 @@ export default function Index() {
           </Modal>
 
           {/* Search View Modal */}
-          <Modal visible={searchResultModal}>
+          <Modal visible={searchResultModal} onRequestClose={() => { setSearchResultModal(false) }}>
             <SafeAreaView className="flex-1 bg-blue-dark">
+              <View className="flex-row">
+                <TouchableOpacity className=" self-left px-1 mt-4 ml-2  "
+                  onPress={() => {
+                    setSearchResultModal(false);
+                    setText('');
+                    setIsImageSearchActive(false);
+                    setIsTextSearchActive(false);
+                    setPhotoUri(null);
+                    setImageSearchResults([]);
+                    setTextSearchResults([]);
+                    setMatchingItems(null)
+                  }}>
+                  <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
+                </TouchableOpacity>
 
-              <TouchableOpacity className=" self-left px-1 mt-4 ml-2  "
-                onPress={() => {
-                  setSearchResultModal(false);
-                  setText('');
-                  setIsImageSearchActive(false);
-                  setIsTextSearchActive(false);
-                  setPhotoUri(null);
-                  setImageSearchResults([]);
-                  setTextSearchResults([]);
-                  setMatchingItems(null)
-                }}>
-                <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
-              </TouchableOpacity>
+                <Text className="self-center text-white font-bold text-2xl  ">
+                  {"\t"}Avg Price: ${getAvgPrice(matchingItems ? matchingItems : searchResults)} {"\n"}
+                  {"\t"}Item's Found: {(matchingItems ? matchingItems : searchResults)?.length}
+                </Text>
 
+              </View>
               <View className=" w-5/6 self-center relative mt-0 flex-row">
-
                 <TextInput
                   placeholder="Enter Here"
                   value={text} onChangeText={setText}
@@ -488,17 +530,16 @@ export default function Index() {
                 )}
               </View>
 
+
               <View className="border-t-4 mt-2 rounded-m bg-blue-dark-200">
                 {(searchResults || matchingItems) ? (
                   <FlatList
                     data={matchingItems ? matchingItems : searchResults}
-                    renderItem={renderResultItem}
+                    renderItem={({ item }) => <RenderResultItem item={item} />}
                     keyExtractor={(item) => item.id}
                     numColumns={2}
                     columnWrapperStyle={{ justifyContent: 'space-between' }}
                     contentContainerStyle={{ padding: 25 }}
-
-
                   />
                 ) : (
                   <View className="bg-white text-2xl w-10/12 self-center">
@@ -530,8 +571,8 @@ export default function Index() {
   /*
   * While loading, display that the page is loading
   * This should always be behind the splash screen, but I'm leaving it here anyways just to be safe */
-  if(loading){
-    return(
+  if (loading) {
+    return (
       <SafeAreaView>
         <Text>
           Loading...
