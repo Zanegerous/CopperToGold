@@ -25,56 +25,50 @@ interface EbayItem {
 SplashScreen.preventAutoHideAsync();
 
 export default function Index() {
+  // Permissions
   const [permission, requestPermission] = useCameraPermissions();
+
+  // User Interface
   const [isExpanded, setIsExpanded] = useState(false);
   const [submitVisible, setSubmitVisible] = useState(false);
-
   const [searchFocused, setSearchFocused] = useState(false);
+  const [isImageSearchActive, setIsImageSearchActive] = useState(false);
+  const [searchResultModal, setSearchResultModal] = useState(false);
 
-  const [auctionSetting, toggleAuctionSetting] = useState(false);
-  const [usedSetting, toggleUsedSetting] = useState(false);
-  const animatedWidth = useRef(new Animated.Value(0)).current;
-  const animatedYPos = useRef(new Animated.Value(300)).current;
-  const inputRef = useRef<TextInput>(null);
-
-  const cameraRef = useRef(null);
-  const [photoURI, setPhotoUri] = useState(null);
+  // Input Manager
   const [text, setText] = useState('');
-
-  // Modals
-  const [settingModal, setSettingModal] = useState(false);
-  const [soldModal, setSoldModal] = useState(false);
-
-  const [soldPageLink, setSoldPageLink] = useState('');
-
   const [history, setHistory] = useState<string[]>([]);
   const [historyVisible, setHistoryVisible] = useState(false);
 
-  const [cameraOpen, setCameraOpen] = useState(false);
+  // Settings
+  const [auctionSetting, toggleAuctionSetting] = useState(false);
+  const [usedItemSetting, toggleUsedItemSetting] = useState(false);
+  const [settingModal, setSettingModal] = useState(false);
 
-  const [isTextSearchActive, setIsTextSearchActive] = useState(false);
-  const [isImageSearchActive, setIsImageSearchActive] = useState(false);
-
-  const [isLoading, setIsLoading] = useState(false)
-  const [searchResultModal, setSearchResultModal] = useState(false);
+  // Search Manager
+  const [loadingSymbolState, setLoadingSymbolState] = useState(false);
   const [searchResults, setSearchResults] = useState<EbayItem[] | null>(null);
-  const [textSearchResults, setTextSearchResults] = useState<EbayItem[]>([]);
   const [imageSearchResults, setImageSearchResults] = useState<EbayItem[]>([]);
   const [matchingItems, setMatchingItems] = useState<EbayItem[] | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const [user, setUser] = useState<User | null>(auth.currentUser)
-  const [loading, setLoading] = useState(true); // This solves race condition, see note below
-  const { isDarkMode } = useTheme(); // This is for accessing darkmode from ThemeContext
+  // User Stuff
+  const [user, setUser] = useState<User | null>(auth.currentUser);
 
-  /*
-  * This comment is explaining the race condition. It's related to authentication persistance.
-  * Firebase has a built in function for auth persistance, and react has an integration for that persistance.
+  // Animation
+  const animatedWidth = useRef(new Animated.Value(0)).current;
+  const animatedYPos = useRef(new Animated.Value(300)).current;
 
-  * HOWEVER, when I set everything up in index, I found out there's a really funny interaction: user defaults to null until it communicates with firebase and actually sets user. For whatever reason, this isn't considered async so there's no await. So, the page loads, sees that user is null, and automatically redirects to the login page before firebase can come in and confirm the user is logged in.
+  // Camera
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const cameraRef = useRef(null);
+  const inputRef = useRef<TextInput>(null);
+  const [photoURI, setPhotoUri] = useState(null);
 
-  * My solution was to add a loading state that defaults to true, and set it to false in the first useEffect. Then, if the page is loading it displays the splash screen, and once it's done loading it either displays the home page or brings you to the login page. */
+  // Theme
+  const { isDarkMode } = useTheme();  // For accessing dark mode
 
-  // Everytime the auth state changes (such as firebase loading the persisted user), this sets the user to whatever the new user state is (either the user who is logged in, or null), then sets loading to false.
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
@@ -95,22 +89,14 @@ export default function Index() {
     return <View />;
   }
 
+  // Gets Camera Permission
   if (!permission.granted) {
     return (
-      <View style={{ flex: 1 }}>
+      <View className="flex-1">
         <Text className="bg-black text-white rounded-md text-center text-2xl top-5 w-8/12">We need your permission to show the camera</Text>
         <Button onPress={requestPermission} title="grant permission" />
       </View>
     );
-  }
-
-  const searchSold = () => {
-    if (text === '') {
-      alert("Must Enter Search");
-    } else {
-      setSoldModal(true);
-      setSoldPageLink(`https://www.ebay.com/sch/i.html?_nkw=${text}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`);
-    }
   }
 
   // Formatting for history to be output in history flatlist
@@ -178,13 +164,6 @@ export default function Index() {
     }
   };
 
-  const dualSearchMerge = () => {
-    const textListingIds = new Set(textSearchResults.map(item => item.id))
-    const matching = imageSearchResults.filter(item => textListingIds.has(item.id))
-    setMatchingItems(matching);
-    // console.log(matching)
-  }
-
   const convertImageToBase64 = async (imageUri: string) => {
     const base64 = await FileConversion.readAsStringAsync(imageUri, {
       encoding: FileConversion.EncodingType.Base64,
@@ -195,7 +174,43 @@ export default function Index() {
   const searchBarcodeResult = (barcode: string) => {
     setCameraOpen(false)
     setText(barcode)
-    alert('Text has been set to: ' + text)
+    // alert('Text has been set to: ' + text)
+  }
+
+  const searchImageResults = async (imageUri: string) => {
+    const base64Image = await convertImageToBase64(imageUri);
+    setLoadingSymbolState(true)
+    await searchEbayByImage(base64Image).then((results) => {
+      setImageSearchResults(results);
+      setSearchResults(results);
+      setIsImageSearchActive(true)
+    }).catch((error) => {
+      console.error("Error searching eBay with image:", error)
+    }).finally(() => {
+      setLoadingSymbolState(false);
+      setSearchResultModal(true);
+    })
+  };
+
+  const searchTextResults = async () => {
+    setLoadingSymbolState(true)
+    if (text != '') {
+      await searchEbay(text).then((results) => {
+        setSearchResults(results);
+
+        if (isImageSearchActive) {
+          dualSearchMerge(results);
+        }
+      }).catch((error) => {
+        console.log('Error Searching eBay with text:', error);
+      }).finally(() => {
+        setLoadingSymbolState(false);
+        setSearchResultModal(true);
+      })
+      Keyboard.dismiss();
+    } else {
+      alert('Must Enter Search')
+    }
   }
 
   const takePicture = async (camera: { takePictureAsync: () => any; } | null) => {
@@ -203,61 +218,31 @@ export default function Index() {
       const photo = await camera.takePictureAsync();
       setPhotoUri(photo.uri)
       setCameraOpen(false);
-      searchImageResults(photo.uri)
-      //alert(photoURI)
-
-    } else {
-      alert('Null Camera')
+      searchImageResults(photo.uri);
     }
-
   }
 
-  const searchImageResults = async (imageUri: string) => {
-    const base64Image = await convertImageToBase64(imageUri);
-    setIsLoading(true)
-    await searchEbayByImage(base64Image).then((results) => {
-      setImageSearchResults(results);
-      setSearchResults(results);
-      setIsImageSearchActive(true)
-      setIsTextSearchActive(false)
-      setSearchResultModal(true)
-
-    }).catch((error) => {
-      console.error("Error searching eBay with image:", error)
-    }).finally(() => {
-      setIsLoading(false);
-      setSearchResultModal(true);
-    })
-
-  };
-
-  const searchTextResults = async () => {
-    setIsLoading(true)
-    if (text != '') {
-      await searchEbay(text).then((results) => {
-        setTextSearchResults(results);
-        setSearchResults(results);
-        setIsTextSearchActive(true)
-        setSearchResultModal(true);
-
-      }).catch((error) => {
-        console.log('Error Searching eBay with text:', error);
-      }).finally(() => {
-        if (isImageSearchActive == true) {
-          dualSearchMerge();
-        }
-        setIsLoading(false);
-        setSearchResultModal(true);
-      })
-
-      Keyboard.dismiss();
+  // logic to handle searching from the text
+  const handleSearch = () => {
+    if (text === '' || text === null) {
+      alert("Must Enter Search");
     } else {
-      alert('Must Enter Search')
+      handleHistory();
+      searchTextResults();
+      handleSearchClose();
     }
-
   }
 
+  const dualSearchMerge = (textResults: any[]) => {
+    const textListingIds = new Set(textResults.map(item => item.id))
+    const matching = imageSearchResults.filter(item => textListingIds.has(item.id))
+    setMatchingItems(matching);
+  }
 
+  const handleHistory = () => {
+    const cleanHistor = history.filter(item => item != text);
+    setHistory([text, ...cleanHistor.slice(0, 9)]);
+  }
 
   // Animation for opening search bar
   const handleSearchOpen = () => {
@@ -312,28 +297,7 @@ export default function Index() {
     });
   }
 
-  // cleans and sets up history
-  const handleHistory = () => {
-    const cleanHistor = history.filter(item => item != text);
-    setHistory([text, ...cleanHistor.slice(0, 9)]);
-  }
-
-  // logic to handle searching from the text
-  const handleSearch = () => {
-    if (text === '' || text === null) {
-      alert("Must Enter Search");
-    } else {
-      handleHistory();
-      searchTextResults();
-      handleSearchClose();
-    }
-
-    if (isImageSearchActive) {
-      dualSearchMerge();
-    }
-  }
-
-  // This is the formatting for the home page
+  // Home Page
   if (!loading && user) {
     return (
       <TouchableWithoutFeedback onPress={() => { if (text == '') { handleSearchClose(); /* if text is empty and user clicks outside input, close input*/ } }}>
@@ -457,10 +421,10 @@ export default function Index() {
                 </View>
 
                 <View className="w-36 h-12 bg-white flex-row items-center justify-between p-2  mt-4 rounded-lg self-center border-2">
-                  {usedSetting ? (<Text className="text-lg">Used</Text>) : (<Text className="text-lg">New</Text>)}
+                  {usedItemSetting ? (<Text className="text-lg">Used</Text>) : (<Text className="text-lg">New</Text>)}
                   <Switch
-                    value={usedSetting}
-                    onValueChange={toggleUsedSetting}
+                    value={usedItemSetting}
+                    onValueChange={toggleUsedItemSetting}
                     trackColor={{ true: "#767577", false: "#81b0ff" }}
                     thumbColor={"#f5dd4b"}
                   />
@@ -473,15 +437,14 @@ export default function Index() {
           <Modal visible={searchResultModal} onRequestClose={() => { setSearchResultModal(false) }}>
             <SafeAreaView className="flex-1 bg-blue-dark">
               <View className="flex-row">
+                {/*Back Button that refreshes all states*/}
                 <TouchableOpacity className=" self-left px-1 mt-4 ml-2  "
                   onPress={() => {
                     setSearchResultModal(false);
                     setText('');
                     setIsImageSearchActive(false);
-                    setIsTextSearchActive(false);
                     setPhotoUri(null);
                     setImageSearchResults([]);
-                    setTextSearchResults([]);
                     setMatchingItems(null)
                   }}>
                   <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
@@ -493,19 +456,20 @@ export default function Index() {
                 </Text>
 
               </View>
+
               <View className=" w-5/6 self-center relative mt-0 flex-row">
                 <TextInput
                   placeholder="Enter Here"
                   value={text} onChangeText={setText}
                   onFocus={() => setSearchFocused(true)}
                   onBlur={() => setSearchFocused(false)}
-                  autoFocus={false}
+                  autoFocus={true}
                   onSubmitEditing={() => { handleSearch(); }}
-                  className={`w-5/6 self-center border-2 rounded-2xl h-12 ${searchFocused ? 'border-blue-500 bg-blue-200' : 'border-black bg-gray-400'}`}
+                  className={`w-full self-center border-2 rounded-2xl h-12 ${searchFocused ? 'border-blue-500 bg-blue-200' : 'border-black bg-gray-400'}`}
                   ref={inputRef}
                 />
 
-                <TouchableOpacity onPress={() => { handleSearch(); }} className="absolute right-20 top-2 z-12">
+                <TouchableOpacity onPress={() => { handleSearch(); }} className="absolute right-16 top-2 z-12">
                   <Icon name="search" size={25} color='blue' />
                 </TouchableOpacity>
 
@@ -525,7 +489,7 @@ export default function Index() {
                     setMatchingItems(null);
                     setCameraOpen(true);
                   }}>
-                    {<Icon name='camera' size={40} color={'orange'} className=" w-12 h-12 rounded-xl z-10" />}
+                    {<Icon name='camera' size={35} color={'orange'} className=" w-12 h-12 rounded-xl z-10 mt-1" />}
                   </TouchableOpacity>
                 )}
               </View>
@@ -552,11 +516,13 @@ export default function Index() {
             </SafeAreaView>
           </Modal>
 
-          {isLoading && (
-            <View className="absolute top-0 left-0 right-0 bottom-0 justify-center align-middle bg-black/50">
+          {/* Converted to a modal for better useage and to overlay ontop of other modals */}
+          <Modal visible={loadingSymbolState} transparent={true} animationType="fade">
+            <View className="absolute top-0 left-0 right-0 bottom-0 justify-center align-middle bg-black/50 z-auto">
               <ActivityIndicator size='large' color="white" />
             </View>
-          )}
+          </Modal>
+
         </SafeAreaView>
       </TouchableWithoutFeedback>
     );
