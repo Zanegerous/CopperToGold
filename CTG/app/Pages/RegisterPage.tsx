@@ -10,11 +10,13 @@ import { useRouter } from "expo-router";
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [secQuestion, setSecQuestion] = useState("");
+  const [secAnswer, setSecAnswer] = useState("");
   const { isDarkMode } = useTheme();
   const router = useRouter();
 
   const handleRegister = async () => {
-    const { user, error } = await registerWithEmailAndPassword(email, password);
+    const { user, error } = await registerWithEmailAndPassword(email, password, secQuestion, secAnswer);
 
     if (error) {
       // If error is a string from validation, show it as an alert
@@ -98,7 +100,8 @@ export default function RegisterPage() {
             placeholder="Enter your security question."
             placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
             autoCapitalize="none"
-            keyboardType="email-address"
+            onChangeText={setSecQuestion}
+            value={secQuestion}
           />
         </View>
         <View className="w-full mb-4">
@@ -113,7 +116,8 @@ export default function RegisterPage() {
             placeholder="Enter your answer to your security question"
             placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
             autoCapitalize="none"
-            keyboardType="email-address"
+            onChangeText={setSecAnswer}
+            value={secAnswer}
           />
         </View>
         <TouchableOpacity
