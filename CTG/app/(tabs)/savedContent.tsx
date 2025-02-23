@@ -53,10 +53,10 @@ export default function SavedContent() {
         const [unsaveState, setUnsaveState] = useState(false);
 
         return (
-            <View>
+            <View className="bg-white border-2 rounded-2xl w-2/6 m-1">
                 <Text>Title: {title}</Text>
                 <Text>Price: {price.value}{price.currency}</Text>
-                <Image source={{ uri: image }} />
+                <Image source={{ uri: image }} style={{ width: 100, height: 100 }} />
                 <Text>Condition: {condition}</Text>
                 <Text>ID: {id}</Text>
             </View>
@@ -67,7 +67,11 @@ export default function SavedContent() {
 
     return (
         <SafeAreaView className="bg-blue-dark-100 flex-1">
-            <FlatList data={savedList} renderItem={({ item }) => <SavedItem {...item} />} />
+            <FlatList
+                data={savedList}
+                renderItem={({ item }) => <SavedItem {...item} />}
+                numColumns={2}
+            />
         </SafeAreaView>
     );
 }
