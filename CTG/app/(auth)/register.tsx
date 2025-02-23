@@ -7,7 +7,7 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Password validation regex
 const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-export const registerWithEmailAndPassword = async (email: string, password: string) => {
+export const registerWithEmailAndPassword = async (email: string, password: string, sec_question: string, sec_answer: string) => {
   // Validate email and password
   if (!emailRegex.test(email)) {
     return { user: null, error: "Invalid email format." };
