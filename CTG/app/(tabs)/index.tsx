@@ -1,4 +1,9 @@
-import { ActivityIndicator, Animated, Easing, FlatList, Keyboard, Modal, StatusBar, Switch, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View, Image, Button } from "react-native";
+import {
+  ActivityIndicator, Animated, Easing, FlatList,
+  Keyboard, Modal, StatusBar, Switch, Text,
+  TextInput, TouchableOpacity, TouchableWithoutFeedback,
+  View, Image, Button
+} from "react-native";
 import "../../global.css";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useRef, useState } from 'react';
@@ -6,12 +11,17 @@ import Icon from 'react-native-vector-icons/FontAwesome'
 import { searchEbay, searchEbayByImage } from "@/ebayApi";
 import * as FileConversion from 'expo-file-system'
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { onAuthStateChanged, User } from "firebase/auth";
 import * as SplashScreen from 'expo-splash-screen';
-import { auth } from "../firebaseconfig/firebase";
 import { useTheme } from "../context/ThemeContext";
 import { Redirect } from "expo-router";
 import WebView from "react-native-webview";
+
+import { FIREBASE_STORAGE, auth } from "../firebaseconfig/firebase";
+import { Database, ref as dbRef, getDatabase, push, remove, set } from 'firebase/database'
+import { onAuthStateChanged, User } from "firebase/auth";
+import { ref } from 'firebase/storage'
+
+
 
 interface EbayItem {
   title: string;
@@ -54,6 +64,9 @@ export default function Index() {
 
   // User Stuff
   const [user, setUser] = useState<User | null>(auth.currentUser);
+  const [userUID, setUserUID] = useState<string | undefined>(user?.uid);
+  const [database, setDatabase] = useState<Database>(getDatabase());
+
 
   // Animation
   const animatedWidth = useRef(new Animated.Value(0)).current;
@@ -72,6 +85,8 @@ export default function Index() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      setUserUID(user?.uid);
+      setDatabase(getDatabase());
       if (user) {
         console.log("USER IS LOGGED IN: ", user);
       }
@@ -99,6 +114,141 @@ export default function Index() {
     );
   }
 
+  // Saving to firebase Logic
+  const saveItem = async (item: EbayItem) => {
+    const cleanTitle = item.title.replace(/[^a-zA-Z0-9]/g, "_");
+    const saveRef = `users/${userUID}/savedItems/${cleanTitle}`
+    const itemRef = dbRef(database, saveRef);
+
+
+    try {
+      await set(itemRef, {
+        title: item.title,
+        price: item.price,
+        image: item.image,
+        condition: item.condition,
+        id: item.id
+      });
+      console.log('saved Item: ', item.title)
+    } catch (error: any) {
+      console.error("Save Error: ", error);
+    } finally {
+
+    }
+
+  }
+
+  // removing from firebase logic
+  const deleteSavedItem = async (item: EbayItem) => {
+    const cleanTitle = item.title.replace(/[^a-zA-Z0-9]/g, "_");
+    const saveRef = dbRef(database, `users/${userUID}/savedItems/${cleanTitle}`);
+    try {
+
+      await remove(saveRef);
+      console.log('Removed Item: ', item.title)
+    } catch (error: any) {
+      console.error("Delete Error: ", error);
+    } finally {
+
+    }
+
+  }
+
+
+
+  // React Component that holds a modal with item information.
+  const RenderResultItem = ({ item }: { item: EbayItem }) => {
+    const [resultModal, setResultModal] = useState(false);
+    const soldPageLink = `https://www.ebay.com/sch/i.html?_nkw=${item.title}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`
+    const [saveState, setSaveState] = useState(false);
+    const [soldPageModal, setSoldPageModal] = useState(false);
+    const textSettings = ' color-white'; // space needed at start
+
+    return (
+      <TouchableOpacity
+        onPress={() => { setResultModal(true) }}
+        className="bg-gray-500 border-black rounded-md border-spacing-4 border-2 mb-4 mr-5 ml-5 w-40"
+      >
+
+        {/*This is the outside image*/}
+        <Image
+          source={{ uri: item.image }}
+          className="w-36 h-36 m-1 rounded-lg"
+          resizeMode='contain'
+        />
+        <Text className="text-center color-blue-900 font-bold text-sm">{item.title}</Text>
+        <Text className="text-center">{item.price.currency} {item.price.value}</Text>
+        <Text className="text-center">{item.condition}</Text>
+
+        {/* Zoom up modal */}
+        <Modal visible={resultModal} onRequestClose={() => { setResultModal(false) }} animationType='fade'>
+          <View className="bg-blue-dark-200 flex-1">
+            <View className="flex-row justify-between items-center">
+
+              <TouchableOpacity className=" px-1 mt-4 ml-2  "
+                onPress={() => {
+                  setResultModal(false)
+                }}>
+                <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => {
+                if (saveState == false) {
+                  saveItem(item);
+                  setSaveState(true);
+                } else {
+                  deleteSavedItem(item);
+                  setSaveState(false);
+                }
+              }}
+                className="mt-4 mr-2 "
+              >
+                <Icon name={'star'} size={50} color={saveState ? 'yellow' : 'grey'} />
+              </TouchableOpacity>
+
+            </View>
+
+            <Text className={"text-center font-bold text-3xl bg-blue-dark-100 rounded-xl border-black border-2 m-4" + textSettings}>{item.title}</Text>
+
+            <Image
+              source={{ uri: item.image }}
+              className="w-11/12 h-1/2 m-1 rounded-lg self-center"
+              resizeMode='contain'
+            />
+
+            <Text className={"text-center" + textSettings}>{item.price.currency} {item.price.value}</Text>
+            <Text className={"text-center" + textSettings}>{item.condition}</Text>
+
+            <TouchableOpacity onPress={() => setSoldPageModal(true)} className="bg-orange-400 rounded-lg border-2 border-black w-1/2 self-center h-16" >
+              <Text className={"text-center" + textSettings}>See Sold Items</Text>
+            </TouchableOpacity>
+
+            <View className="w-full h-2/3 self-center p-5">
+              <Modal visible={soldPageModal} animationType='slide' onRequestClose={() => { setSoldPageModal(false) }}>
+                <View className="bg-blue-dark-100">
+                  <TouchableOpacity className=" self-left px-1 mt-2 mb-2 ml-2  "
+                    onPress={() => {
+                      setSoldPageModal(false)
+                    }}>
+                    <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
+                  </TouchableOpacity>
+                </View>
+                <WebView
+                  source={{ uri: soldPageLink }}
+                  scalesPageToFit={true}
+                />
+              </Modal>
+            </View>
+
+          </View>
+
+        </Modal>
+
+
+      </TouchableOpacity>
+    )
+  };
+
   // Formatting for history to be output in history flatlist
   const renderHistory = ({ item }: { item: string }) => {
     return (
@@ -108,51 +258,6 @@ export default function Index() {
     );
   }
 
-  // React Component that holds a modal with item information.
-  const RenderResultItem = ({ item }: any) => {
-    const [resultModal, setResultModal] = useState(false);
-    const soldPageLink = `https://www.ebay.com/sch/i.html?_nkw=${item.title}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`
-
-    return (
-      <TouchableOpacity
-        onPress={() => { setResultModal(true) }}
-        className="bg-gray-500 border-black rounded-md border-spacing-4 border-2 mb-4 mr-5 ml-5 w-40"
-      >
-        <Modal visible={resultModal} onRequestClose={() => { setResultModal(false) }}>
-          <View className="bg-blue-dark-100 flex-1">
-            <TouchableOpacity className=" self-left px-1 mt-4 ml-2  "
-              onPress={() => {
-                setResultModal(false)
-              }}>
-              <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
-            </TouchableOpacity>
-
-            <Image
-              source={{ uri: item.image }}
-              className="w-36 h-36 m-1 rounded-lg"
-            />
-            <Text className="text-center color-blue-900 font-bold text-sm">{item.title}</Text>
-            <Text className="text-center">{item.price.currency} {item.price.value}</Text>
-            <Text className="text-center">{item.condition}</Text>
-            <View className="w-full h-2/3 self-center p-5 bg-blue-dark-200">
-              <WebView
-                source={{ uri: soldPageLink }}
-                scalesPageToFit={true}
-              />
-            </View>
-          </View>
-
-        </Modal>
-        <Image
-          source={{ uri: item.image }}
-          className="w-36 h-36 m-1 rounded-lg"
-        />
-        <Text className="text-center color-blue-900 font-bold text-sm">{item.title}</Text>
-        <Text className="text-center">{item.price.currency} {item.price.value}</Text>
-        <Text className="text-center">{item.condition}</Text>
-      </TouchableOpacity>
-    )
-  };
 
   const getAvgPrice = (list: EbayItem[] | null): number => {
     if (list == null || list.length == 0) {
@@ -296,6 +401,7 @@ export default function Index() {
       setIsExpanded(false);
     });
   }
+
 
   // Home Page
   if (!loading && user) {
