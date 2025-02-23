@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, {Marker} from 'react-native-maps';
 import * as Location from 'expo-location';
-import { StyleSheet, View } from 'react-native';
 
-export default function App(this: any) {
+export default function App() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   // Default to Ruston if permission denied
   const [lat, setLat] = useState(32.523205);
@@ -51,7 +52,7 @@ export default function App(this: any) {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <MapView 
         style={styles.map} 
         region={{
@@ -71,7 +72,7 @@ export default function App(this: any) {
           />
         ))}
       </MapView>
-    </View>
+    </SafeAreaView>
   );
 }
 
