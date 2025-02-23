@@ -2,7 +2,8 @@ import {
   ActivityIndicator, Animated, Easing, FlatList,
   Keyboard, Modal, StatusBar, Switch, Text,
   TextInput, TouchableOpacity, TouchableWithoutFeedback,
-  View, Image, Button
+  View, Image, Button,
+  ScrollView
 } from "react-native";
 import "../../global.css";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -61,6 +62,8 @@ export default function Index() {
   const [imageSearchResults, setImageSearchResults] = useState<EbayItem[]>([]);
   const [matchingItems, setMatchingItems] = useState<EbayItem[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [searchWebViewState, setSearchWebViewState] = useState(false);
+  const [soldTextLink, setSoldTextLink] = useState(`https://www.ebay.com/sch/i.html?_nkw=${text}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`)
 
   // User Stuff
   const [user, setUser] = useState<User | null>(auth.currentUser);
@@ -88,7 +91,7 @@ export default function Index() {
       setUserUID(user?.uid);
       setDatabase(getDatabase());
       if (user) {
-        console.log("USER IS LOGGED IN: ", user);
+        //console.log("USER IS LOGGED IN: ", user);
       }
       setLoading(false);
     });
@@ -154,8 +157,6 @@ export default function Index() {
 
   }
 
-
-
   // React Component that holds a modal with item information.
   const RenderResultItem = ({ item }: { item: EbayItem }) => {
     const [resultModal, setResultModal] = useState(false);
@@ -165,20 +166,26 @@ export default function Index() {
     const textSettings = ' color-white'; // space needed at start
 
     return (
-      <TouchableOpacity
-        onPress={() => { setResultModal(true) }}
-        className="bg-gray-500 border-black rounded-md border-spacing-4 border-2 mb-4 mr-5 ml-5 w-40"
-      >
+      <View className="bg-slate-600 flex-1 border-black rounded-md border-spacing-4 border-2 mb-4 mr-5 ml-5 w-2/5">
+        <TouchableOpacity
+          onPress={() => { setResultModal(true) }}
+          className=""
+        >
 
-        {/*This is the outside image*/}
-        <Image
-          source={{ uri: item.image }}
-          className="w-36 h-36 m-1 rounded-lg"
-          resizeMode='contain'
-        />
-        <Text className="text-center color-blue-900 font-bold text-sm">{item.title}</Text>
-        <Text className="text-center">{item.price.currency} {item.price.value}</Text>
-        <Text className="text-center">{item.condition}</Text>
+          {/*This is the outside image*/}
+          <Image
+            source={{ uri: item.image }}
+            className="h-48 m-1 rounded-lg"
+            resizeMode='contain'
+          />
+          <Text className="text-center color-blue-900 font-semibold m-2 rounded-lg bg-zinc-400 text-sm">{item.title}</Text>
+          <Text className="text-left text-l ml-1 text-white">Listed Price: ${item.price.value}</Text>
+          <Text className="text-left ml-1 text-white">Condition: {item.condition}</Text>
+
+
+
+
+        </TouchableOpacity>
 
         {/* Zoom up modal */}
         <Modal visible={resultModal} onRequestClose={() => { setResultModal(false) }} animationType='fade'>
@@ -205,23 +212,26 @@ export default function Index() {
               >
                 <Icon name={'star'} size={50} color={saveState ? 'yellow' : 'grey'} />
               </TouchableOpacity>
-
             </View>
 
-            <Text className={"text-center font-bold text-3xl bg-blue-dark-100 rounded-xl border-black border-2 m-4" + textSettings}>{item.title}</Text>
-
+            <Text className={"text-center font-bold text-3xl bg-blue-dark-100 w-auto m-1 rounded-xl border-black border-2  mb-2 mt-2" + textSettings}>{item.title}</Text>
             <Image
               source={{ uri: item.image }}
-              className="w-11/12 h-1/2 m-1 rounded-lg self-center"
+              className="w-11/12 h-1/2 m-1 rounded-lg self-center bg-slate-600"
               resizeMode='contain'
             />
+            <Text className={"text-left text-3xl ml-4 mt-6" + textSettings}>Listing Price: ${item.price.value}</Text>
+            <Text className={"text-left text-3xl ml-4" + textSettings}>Condition: {item.condition}</Text>
 
-            <Text className={"text-center" + textSettings}>{item.price.currency} {item.price.value}</Text>
-            <Text className={"text-center" + textSettings}>{item.condition}</Text>
 
-            <TouchableOpacity onPress={() => setSoldPageModal(true)} className="bg-orange-400 rounded-lg border-2 border-black w-1/2 self-center h-16" >
-              <Text className={"text-center" + textSettings}>See Sold Items</Text>
-            </TouchableOpacity>
+            <View className="flex-row absolute bottom-2 justify-center content-center w-full">
+              <TouchableOpacity onPress={() => setSoldPageModal(true)} className="bg-orange-400 rounded-lg border-2 border-black justify-center w-2/5 self-center h-16" >
+                <Text className={"text-center text-2xl justify-center" + textSettings}>See Sold Items</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => { setText(item.title); handleSearch(); setResultModal(false) }} className="bg-orange-400 m-2 rounded-lg border-2 border-black w-1/2 justify-center self-center h-16" >
+                <Text className={"text-center text-2xl" + textSettings}>Search This Item</Text>
+              </TouchableOpacity>
+            </View>
 
             <View className="w-full h-2/3 self-center p-5">
               <Modal visible={soldPageModal} animationType='slide' onRequestClose={() => { setSoldPageModal(false) }}>
@@ -243,9 +253,7 @@ export default function Index() {
           </View>
 
         </Modal>
-
-
-      </TouchableOpacity>
+      </View>
     )
   };
 
@@ -256,7 +264,7 @@ export default function Index() {
         <Text className="text-center">{item}</Text>
       </TouchableOpacity>
     );
-  }
+  };
 
 
   const getAvgPrice = (list: EbayItem[] | null): number => {
@@ -280,7 +288,7 @@ export default function Index() {
     setCameraOpen(false)
     setText(barcode)
     // alert('Text has been set to: ' + text)
-  }
+  };
 
   const searchImageResults = async (imageUri: string) => {
     const base64Image = await convertImageToBase64(imageUri);
@@ -316,7 +324,7 @@ export default function Index() {
     } else {
       alert('Must Enter Search')
     }
-  }
+  };
 
   const takePicture = async (camera: { takePictureAsync: () => any; } | null) => {
     if (camera != null) {
@@ -325,29 +333,30 @@ export default function Index() {
       setCameraOpen(false);
       searchImageResults(photo.uri);
     }
-  }
+  };
 
   // logic to handle searching from the text
   const handleSearch = () => {
     if (text === '' || text === null) {
       alert("Must Enter Search");
     } else {
+      setSoldTextLink(`https://www.ebay.com/sch/i.html?_nkw=${text}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`)
       handleHistory();
       searchTextResults();
       handleSearchClose();
     }
-  }
+  };
 
   const dualSearchMerge = (textResults: any[]) => {
     const textListingIds = new Set(textResults.map(item => item.id))
     const matching = imageSearchResults.filter(item => textListingIds.has(item.id))
     setMatchingItems(matching);
-  }
+  };
 
   const handleHistory = () => {
     const cleanHistor = history.filter(item => item != text);
     setHistory([text, ...cleanHistor.slice(0, 9)]);
-  }
+  };
 
   // Animation for opening search bar
   const handleSearchOpen = () => {
@@ -374,7 +383,7 @@ export default function Index() {
         inputRef.current.focus();
       }
     });
-  }
+  };
 
   // Animation for clsoing search bar
   const handleSearchClose = () => {
@@ -400,7 +409,7 @@ export default function Index() {
     ]).start(() => { // Runs after animation finishes
       setIsExpanded(false);
     });
-  }
+  };
 
 
   // Home Page
@@ -541,7 +550,7 @@ export default function Index() {
 
           {/* Search View Modal */}
           <Modal visible={searchResultModal} onRequestClose={() => { setSearchResultModal(false) }}>
-            <SafeAreaView className="flex-1 bg-blue-dark">
+            <SafeAreaView className="h-full w-full bg-blue-dark absolute">
               <View className="flex-row">
                 {/*Back Button that refreshes all states*/}
                 <TouchableOpacity className=" self-left px-1 mt-4 ml-2  "
@@ -600,7 +609,6 @@ export default function Index() {
                 )}
               </View>
 
-
               <View className="border-t-4 mt-2 rounded-m bg-blue-dark-200">
                 {(searchResults || matchingItems) ? (
                   <FlatList
@@ -616,10 +624,37 @@ export default function Index() {
                     <Text className="text-3xl text-center">No Items Found</Text>
                   </View>
                 )}
-
               </View>
 
+              <View className="absolute bottom-0 w-full bg-blue-dark py-4 z-20 border-black border-t-2">
+                <TouchableOpacity
+                  onPress={() => {
+                    setSearchWebViewState(true);
+                  }}
+                  className="self-center bg-orange py-2 px-8 rounded-xl">
+                  <Text className="text-white text-xl">View Sold On Web</Text>
+                </TouchableOpacity>
+              </View>
             </SafeAreaView>
+          </Modal>
+
+          {/* */}
+          <Modal visible={searchWebViewState} onRequestClose={() => { setSearchWebViewState(false) }}>
+            <View className="flex-1">
+              <View className="bg-blue-dark-100">
+                <TouchableOpacity className=" self-left px-1 mt-2 mb-2 ml-2  "
+                  onPress={() => {
+                    setSearchWebViewState(false)
+                  }}>
+                  <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
+                </TouchableOpacity>
+              </View>
+
+              <WebView
+                source={{ uri: soldTextLink }}
+                scalesPageToFit={true}
+              />
+            </View>
           </Modal>
 
           {/* Converted to a modal for better useage and to overlay ontop of other modals */}
