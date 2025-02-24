@@ -1,4 +1,4 @@
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { auth } from "../firebaseconfig/firebase";
 
 // Email validation regex
@@ -16,12 +16,15 @@ export const registerWithEmailAndPassword = async (email: string, password: stri
   if (!passwordRegex.test(password)) {
     return {
       user: null,
-      error: "Password must be at least 8 characters long, include at least one uppercase letter, one number, and one special character.",
+      error:
+        "Password must be at least 8 characters long, include at least one uppercase letter, one number, and one special character.",
     };
   }
 
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    // Send verification email
+    await sendEmailVerification(userCredential.user);
     return { user: userCredential.user, error: null };
   } catch (error) {
     return { user: null, error };
