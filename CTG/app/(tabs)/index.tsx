@@ -274,7 +274,6 @@ export default function Index() {
     );
   };
 
-
   const getAvgPrice = (list: EbayItem[] | null): number => {
     if (list == null || list.length == 0) {
       return 0;
@@ -348,9 +347,9 @@ export default function Index() {
     if (text === '' || text === null) {
       alert("Must Enter Search");
     } else {
-      setSoldTextLink(`https://www.ebay.com/sch/i.html?_nkw=${text}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`)
       handleHistory();
       searchTextResults();
+      setSoldTextLink(`https://www.ebay.com/sch/i.html?_nkw=${text}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`)
       handleSearchClose();
     }
   };
@@ -441,22 +440,19 @@ export default function Index() {
           </TouchableOpacity>
 
           {/* Title */}
-          <View className="flex-row items-center justify-center top-16 absolute">
+          <View className="flex-row items-center justify-center top-24 absolute">
             <Text
               className={styles.TitleText.join(" ") + " text-orange-600"}
-              style={{ fontSize: scale(72) }}
             >
               C
             </Text>
             <Text
               className={styles.TitleText.join(" ") + " text-white"}
-              style={{ fontSize: scale(72) }}
             >
               2
             </Text>
             <Text
               className={styles.TitleText.join(" ") + " text-yellow-300"}
-              style={{ fontSize: scale(72) }}
             >
               G
             </Text>
@@ -481,8 +477,8 @@ export default function Index() {
                         handleSearch();
                       }}
                       className={`w-full self-center border-2 rounded-2xl h-12 ${searchFocused
-                          ? "border-blue-500 bg-blue-200"
-                          : "border-black bg-gray-400"
+                        ? "border-blue-500 bg-blue-200"
+                        : "border-black bg-gray-400"
                         }`}
                       ref={inputRef}
                       style={{ fontSize: scale(16) }}
