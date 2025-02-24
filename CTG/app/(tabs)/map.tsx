@@ -90,8 +90,8 @@ const styles = StyleSheet.create({
 const sales = [
   {
     latlng : {latitude: 32.523205, longitude: -92.637924},
-    title: "Roommate Estate Sale",
-    desc: "My roommate died so I'm selling all of his stuff before his family gets here.",
+    title: "Father Estate Sale",
+    desc: "Trying to clear out our father's house",
     startDate: new Date(2025,2,24,16,0,0),
     endDate: new Date(2025,2,24,20,0,0)
   },
