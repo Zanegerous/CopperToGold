@@ -476,7 +476,7 @@ export default function Index() {
                       onSubmitEditing={() => {
                         handleSearch();
                       }}
-                      className={`w-full self-center border-2 rounded-2xl h-12 ${searchFocused
+                      className={`w-full self-center border-2 rounded-2xl h-14 ${searchFocused
                         ? "border-blue-500 bg-blue-200"
                         : "border-black bg-gray-400"
                         }`}
@@ -645,18 +645,18 @@ export default function Index() {
                   onBlur={() => setSearchFocused(false)}
                   autoFocus={true}
                   onSubmitEditing={() => { handleSearch(); }}
-                  className={`w-full self-center border-2 rounded-2xl h-12 ${searchFocused ? 'border-blue-500 bg-blue-200' : 'border-black bg-gray-400'}`}
+                  className={`w-full self-center border-2 rounded-2xl h-14 ${searchFocused ? 'border-blue-500 bg-blue-200' : 'border-black bg-gray-400'}`}
                   ref={inputRef}
                   style={{ fontSize: scale(16) }}
                 />
 
-                <TouchableOpacity onPress={() => { handleSearch(); }} className="absolute right-16 top-2 z-12">
+                <TouchableOpacity onPress={() => { handleSearch(); }} className="absolute right-16 top-3 z-12">
                   <Icon name="search" size={25} color='blue' />
                 </TouchableOpacity>
 
                 {photoURI ? (
                   <TouchableOpacity
-                    className="absolute right-1"
+                    className="absolute right-1 top-1"
                     onPress={() => {
                       setPhotoUri(null);
                       setSearchResultModal(false);
@@ -672,7 +672,7 @@ export default function Index() {
                     )}
                   </TouchableOpacity>
                 ) : (
-                  <TouchableOpacity className="absolute right-1" onPress={() => {
+                  <TouchableOpacity className="absolute right-1 top-1" onPress={() => {
                     setPhotoUri(null);
                     setSearchResultModal(false);
                     setMatchingItems(null);
