@@ -6,6 +6,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useTextScale } from "../context/TextScaleContext";
 import { auth } from "../firebaseconfig/firebase";
 import { useRouter } from "expo-router";
+import { useNotifSetting } from "../context/NotificationContext";
 import i18n from "../i18n";
 
 type FontScaleOption = {
@@ -20,6 +21,7 @@ type LanguageOption = {
 
 const Settings: React.FC = () => {
   const { isDarkMode, toggleDarkMode } = useTheme();
+  const { isNotif, toggleNotifications } = useNotifSetting();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { fontScale, setFontScale } = useTextScale();
   const router = useRouter();
@@ -85,6 +87,7 @@ const Settings: React.FC = () => {
     }
   };
 
+  // When a new font scale is selected
   const handleSetValue = (selectedValue: number) => {
     setValue(selectedValue);
     setFontScale(selectedValue);
@@ -113,6 +116,24 @@ const Settings: React.FC = () => {
         <Switch
           value={isDarkMode}
           onValueChange={toggleDarkMode}
+          trackColor={{ true: "#767577", false: "#81b0ff" }}
+          thumbColor={isDarkMode ? "#f5dd4b" : "#f4f3f4"}
+        />
+      </View>
+
+      {/*Notification toggle*/}
+      <View style={styles.switchContainer}>
+        <Text
+          style={{
+            color: isDarkMode ? "#fff" : "#000",
+            fontSize: 16 * fontScale,
+          }}
+        >
+          Turn off notifications
+        </Text>
+        <Switch
+          value={isNotif}
+          onValueChange={toggleNotifications}
           trackColor={{ true: "#767577", false: "#81b0ff" }}
           thumbColor={isDarkMode ? "#f5dd4b" : "#f4f3f4"}
         />

@@ -13,12 +13,14 @@ export default function RegisterPage() {
   const { fontScale } = useTextScale();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [secQuestion, setSecQuestion] = useState("");
+  const [secAnswer, setSecAnswer] = useState("");
   const { isDarkMode } = useTheme();
   const router = useRouter();
   const [passwordVisible, setPasswordVisible] = useState(false);
 
   const handleRegister = async () => {
-    const { user, error } = await registerWithEmailAndPassword(email, password);
+    const { user, error } = await registerWithEmailAndPassword(email, password, secQuestion, secAnswer);
 
     if (error) {
       if (typeof error === "string") {
@@ -107,12 +109,44 @@ export default function RegisterPage() {
             </TouchableOpacity>
           </View>
         </View>
-        {/* Register Button */}
-        <TouchableOpacity onPress={handleRegister} className="bg-green-500 w-full rounded py-3">
+        {/* Security Question */}
+        <View className="w-full mb-4">
           <Text
-            className="text-center text-white text-lg"
-            style={{ fontSize: scale(20) }}
+            className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
           >
+            Security Question
+          </Text>
+          <TextInput
+            className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"
+              }`}
+            placeholder="Enter your security question."
+            placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
+            autoCapitalize="none"
+            onChangeText={setSecQuestion}
+            value={secQuestion}
+          />
+        </View>
+        <View className="w-full mb-4">
+          <Text
+            className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
+          >
+            Security Answer
+          </Text>
+          <TextInput
+            className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"
+              }`}
+            placeholder="Enter your answer to your security question"
+            placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
+            autoCapitalize="none"
+            onChangeText={setSecAnswer}
+            value={secAnswer}
+          />
+        </View>
+        <TouchableOpacity
+          onPress={handleRegister}
+          className="bg-green-500 w-full rounded py-3"
+        >
+          <Text className="text-center text-white text-lg" style={{ fontSize: scale(20) }} >
             Register
           </Text>
         </TouchableOpacity>
