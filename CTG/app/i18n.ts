@@ -16,6 +16,7 @@ const resources = {
       cancel: "Cancel",
       englishLabel: "English",
       spanishLabel: "Español",
+      turnNotifOff: "Turn off notifications",
     },
   },
   es: {
@@ -32,6 +33,7 @@ const resources = {
       cancel: "Cancelar",
       englishLabel: "Inglés",
       spanishLabel: "Español",
+      turnNotifOff: "Desactivar notificaciones",
     },
   },
 };

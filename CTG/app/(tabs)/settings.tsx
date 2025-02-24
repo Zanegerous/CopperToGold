@@ -129,7 +129,7 @@ const Settings: React.FC = () => {
             fontSize: 16 * fontScale,
           }}
         >
-          Turn off notifications
+          {i18n.t("turnNotifOff")}
         </Text>
         <Switch
           value={isNotif}
@@ -192,7 +192,7 @@ const Settings: React.FC = () => {
 
       {/* Delete Account */}
       <TouchableOpacity style={[styles.logoutButton, { backgroundColor: "#f00" }]} onPress={() => setIsModalOpen(true)}>
-        <Text style={[styles.logoutText, { color: isDarkMode ? "#fff" : "#fff" }]}>
+        <Text style={[styles.logoutText, { color: isDarkMode ? "#fff" : "#fff", fontSize: 16 * fontScale }]}>
           {i18n.t("deleteAccount")}
         </Text>
       </TouchableOpacity>
