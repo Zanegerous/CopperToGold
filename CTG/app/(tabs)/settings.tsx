@@ -29,6 +29,7 @@ const Settings: React.FC = () => {
   // Text scale picker state
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(fontScale);
+  const [language, setLanguage] = useState('');
   const [items, setItems] = useState<FontScaleOption[]>([
     { label: "Small", value: 0.8 },
     { label: "Normal", value: 1 },
