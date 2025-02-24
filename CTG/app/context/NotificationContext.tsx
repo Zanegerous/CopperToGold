@@ -19,3 +19,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+export function useNotifSetting() {
+  return useContext(NotificationContext);
+}
