@@ -2,8 +2,7 @@ import {
   ActivityIndicator, Animated, Easing, FlatList,
   Keyboard, Modal, StatusBar, Switch, Text,
   TextInput, TouchableOpacity, TouchableWithoutFeedback,
-  View, Image, Button,
-  ScrollView
+  View, Image, Button
 } from "react-native";
 import "../../global.css";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,11 +16,11 @@ import { useTheme } from "../context/ThemeContext";
 import { Redirect } from "expo-router";
 import WebView from "react-native-webview";
 
-import { FIREBASE_STORAGE, auth } from "../firebaseconfig/firebase";
-import { Database, ref as dbRef, getDatabase, push, remove, set } from 'firebase/database'
+import { auth } from "../firebaseconfig/firebase";
+import { Database, ref as dbRef, getDatabase, remove, set } from 'firebase/database'
 import { onAuthStateChanged, User } from "firebase/auth";
-import { ref } from 'firebase/storage'
 import { useTextScale } from "../context/TextScaleContext";
+import { loginWithEbay } from "@/ebayConfig";
 
 
 interface EbayItem {
@@ -85,6 +84,7 @@ export default function Index() {
   const { fontScale } = useTextScale();
   const { isDarkMode } = useTheme();  // For accessing dark mode
   const scale = (baseSize: number) => baseSize * fontScale;
+
 
 
   useEffect(() => {
@@ -533,6 +533,17 @@ export default function Index() {
                 >
                   <Text style={{ fontSize: scale(16) }} className="text-gray-600">
                     Open Camera
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  className="bg-white h-16 w-56 justify-center items-center mt-8 rounded-lg"
+                  onPress={() => {
+                    loginWithEbay(userUID)
+                  }}
+                >
+                  <Text style={{ fontSize: scale(16) }} className="text-gray-600">
+                    Ebay Login
                   </Text>
                 </TouchableOpacity>
               </View>

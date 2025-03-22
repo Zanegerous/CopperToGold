@@ -1,1 +1,7 @@
 CTG/ebayConfig.ts
+functions/tsconfig.json
+functions/tsconfig.dev.json
+functions/src/index.ts
+functions/package.json
+functions/package-lock.json
+functions/.eslintrc.js
