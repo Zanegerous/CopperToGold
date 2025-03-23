@@ -1,6 +1,47 @@
+import { AccessibilityInfo, Alert, Linking } from "react-native";
+
 export const ebayConfig = {
   baseURL: "https://api.ebay.com",
   clientId: "ColemanZ-browseap-PRD-7833b1855-9e455503",
-  clientSecret: "PRD-833b18550d17-97c8-47e9-88ba-0a89",
-  accessToken: "v^1.1#i^1#f^0#p^3#r^0#I^3#t^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", // Replace with the OAuth token
+  redirect_uri: "Coleman_Zuehlke-ColemanZ-browse-lhfnzinzp",
+};
+
+export const loginWithEbay = async (uid: any) => {
+  console.log("UID recieved: ", uid)
+  const scopes = [
+    "https://api.ebay.com/oauth/api_scope",
+    "https://api.ebay.com/oauth/api_scope/sell.marketing.readonly",
+    "https://api.ebay.com/oauth/api_scope/sell.marketing",
+    "https://api.ebay.com/oauth/api_scope/sell.inventory.readonly",
+    "https://api.ebay.com/oauth/api_scope/sell.inventory",
+    "https://api.ebay.com/oauth/api_scope/sell.account.readonly",
+    "https://api.ebay.com/oauth/api_scope/sell.account",
+    "https://api.ebay.com/oauth/api_scope/sell.fulfillment.readonly",
+    "https://api.ebay.com/oauth/api_scope/sell.fulfillment",
+    "https://api.ebay.com/oauth/api_scope/sell.analytics.readonly",
+    "https://api.ebay.com/oauth/api_scope/sell.finances",
+    "https://api.ebay.com/oauth/api_scope/sell.payment.dispute",
+    "https://api.ebay.com/oauth/api_scope/commerce.identity.readonly",
+    "https://api.ebay.com/oauth/api_scope/sell.reputation",
+    "https://api.ebay.com/oauth/api_scope/sell.reputation.readonly",
+    "https://api.ebay.com/oauth/api_scope/commerce.notification.subscription",
+    "https://api.ebay.com/oauth/api_scope/commerce.notification.subscription.readonly",
+    "https://api.ebay.com/oauth/api_scope/sell.stores",
+    "https://api.ebay.com/oauth/api_scope/sell.stores.readonly",
+    "https://api.ebay.com/oauth/scope/sell.edelivery"
+  ].join(' ');
+
+  const authUrl = `https://auth.ebay.com/oauth2/authorize?client_id=${ebayConfig.clientId}&response_type=code&redirect_uri=${ebayConfig.redirect_uri}&scope=${scopes}&state=${uid}`;
+
+
+  try {
+    const supported = await Linking.canOpenURL(authUrl);
+    if (supported) {
+      await Linking.openURL(authUrl);
+    } else {
+      Alert.alert('Unable to open URL');
+    }
+  } catch (error) {
+    Alert.alert('An error occurred', error instanceof Error ? error.message : String(error));
+  }
 };
