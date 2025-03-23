@@ -21,6 +21,8 @@ import { Database, ref as dbRef, getDatabase, remove, set } from 'firebase/datab
 import { onAuthStateChanged, User } from "firebase/auth";
 import { useTextScale } from "../context/TextScaleContext";
 import { loginWithEbay } from "@/ebayConfig";
+import CameraModal from "@/assets/modal/cameraModal";
+import SearchSettingsModal from "@/assets/modal/searchSettingsModal";
 
 
 interface EbayItem {
@@ -183,10 +185,6 @@ export default function Index() {
           <Text className="text-center color-blue-900 font-semibold m-2 rounded-lg bg-zinc-400 text-sm">{item.title}</Text>
           <Text className="text-left text-l ml-1 text-white">Listed Price: ${item.price.value}</Text>
           <Text className="text-left ml-1 text-white">Condition: {item.condition}</Text>
-
-
-
-
         </TouchableOpacity>
 
         {/* Zoom up modal */}
@@ -429,7 +427,7 @@ export default function Index() {
           <StatusBar barStyle={"light-content"} className="bg-zinc-900" />
 
           {/* Settings Gear */}
-          {/* <TouchableOpacity
+          <TouchableOpacity
             onPress={() => {
               setSettingModal(true);
             }}
@@ -437,7 +435,7 @@ export default function Index() {
             style={{ zIndex: 10 }}
           >
             <Icon name="gear" size={50} color="darkgrey" />
-          </TouchableOpacity> */}
+          </TouchableOpacity>
 
           {/* Title */}
           <View className="flex-row items-center justify-center top-24 absolute">
@@ -540,79 +538,24 @@ export default function Index() {
           </View>
 
           {/* Camera Element. Cant disable shutter audio unfortunetly. may look into switching to react-native-vision-camera*/}
-          <Modal visible={cameraOpen} onRequestClose={() => { setCameraOpen(false) }}>
-            <CameraView
-              ref={cameraRef}
-              style={{ flex: 1 }}
-              facing={"back"}
-              mode="picture"
-              mute={true}
-              animateShutter={false}
-              barcodeScannerSettings={{
-                barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e", "code128", "code39", "itf14",],
-              }}
-              onBarcodeScanned={({ data }) => searchBarcodeResult(data)}
-            >
-              {/* Close Camera Button */}
-              <TouchableOpacity
-                className="bg-blue-300 rounded-lg w-1/4 h-10 justify-center self-left px-1 absolute top-4 left-2"
-                onPress={() => setCameraOpen(false)}
-              >
-                <Text
-                  style={{ fontSize: scale(16) }}
-                  className="text-blue-600 text-center"
-                >
-                  Close Camera
-                </Text>
-              </TouchableOpacity>
-
-              {/* Take Picture Button */}
-              <TouchableOpacity
-                onPress={() => takePicture(cameraRef.current)}
-                className="rounded-full border-8 border-white absolute bottom-20 w-24 h-24 self-center"
-              />
-            </CameraView>
-          </Modal>
+          <CameraModal
+            cameraOpen={cameraOpen}
+            setCameraOpen={setCameraOpen}
+            takePicture={takePicture}
+            searchBarcodeResult={searchBarcodeResult}
+          />
 
           {/* Settings Screen */}
-          <Modal visible={settingModal} transparent={true} animationType={'fade'} className="flex-1 " onRequestClose={() => { setSettingModal(false) }}>
-            <View className="flex-1 justify-center align-middle items-center bg-black/50">
-              <View className="w-96 h-96 bg-slate-600 border-4 rounded-2xl">
-                <TouchableOpacity onPress={() => setSettingModal(false)} className="w-12">
-                  <Icon name="times-circle" size={40} color="red" className="m-1" />
-                </TouchableOpacity>
-                <Text
-                  className="align-middle text-center font-semibold text-4xl text-white"
-                  style={{ fontSize: scale(32) }}
-                >
-                  Search Settings
-                </Text>
-                <View className="w-36 h-12 bg-white flex-row items-center justify-between p-2 mt-6 rounded-lg self-center border-2">
-                  <Text style={{ fontSize: scale(16) }} className="text-m">
-                    Auctions
-                  </Text>
-                  <Switch
-                    value={auctionSetting}
-                    onValueChange={toggleAuctionSetting}
-                    trackColor={{ true: "#767577", false: "#81b0ff" }}
-                    thumbColor={"#f5dd4b"}
-                  />
-                </View>
+          <SearchSettingsModal
+            settingModal={settingModal} // Pass the visibility state
+            setSettingModal={setSettingModal} // Pass the setter function to close the modal
+            auctionSetting={auctionSetting} // Pass auction setting state
+            toggleAuctionSetting={toggleAuctionSetting} // Pass auction toggle function
+            usedItemSetting={usedItemSetting} // Pass used item setting state
+            toggleUsedItemSetting={toggleUsedItemSetting} // Pass used item toggle function
+          />
 
-                <View className="w-36 h-12 bg-white flex-row items-center justify-between p-2  mt-4 rounded-lg self-center border-2">
-                  {usedItemSetting ? (<Text className="text-lg">Used</Text>) : (<Text className="text-lg">New</Text>)}
-                  <Switch
-                    value={usedItemSetting}
-                    onValueChange={toggleUsedItemSetting}
-                    trackColor={{ true: "#767577", false: "#81b0ff" }}
-                    thumbColor={"#f5dd4b"}
-                  />
-                </View>
-              </View>
-            </View>
-          </Modal>
-
-          {/* Search View Modal */}
+          {/* Search View Modal, cant move due to complexity*/}
           <Modal visible={searchResultModal} onRequestClose={() => { setSearchResultModal(false) }}>
             <SafeAreaView className="h-full w-full bg-blue-dark absolute">
               <View className="flex-row">
@@ -714,7 +657,7 @@ export default function Index() {
             </SafeAreaView>
           </Modal>
 
-          {/* */}
+          {/* Web View Modal*/}
           <Modal visible={searchWebViewState} onRequestClose={() => { setSearchWebViewState(false) }}>
             <View className="flex-1">
               <View className="bg-blue-dark-100">
