@@ -95,7 +95,7 @@ export const searchEbay = async (query: string): Promise<EbayItem[]> => {
       } while (searchOffset < DESIRED_ITEMS);
     } catch (error: any) {
 
-      if (error.response.status == 400) {
+      if (error.response.status == 401) {
         console.log(" Refresh Attempt ")
         await refreshToken(user!.uid);
         retry = true;
@@ -166,7 +166,7 @@ export const searchEbayByImage = async (imageQuery: string): Promise<EbayItem[]>
 
     } catch (error: any) {
       console.error("Error fetching eBay data:", error);
-      if (error.response.status == 400) {
+      if (error.response.status == 401) {
         console.log(" Refresh Attempt ")
         await refreshToken(user!.uid);
         retry = true;
