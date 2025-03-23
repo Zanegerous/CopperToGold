@@ -131,7 +131,7 @@ const Settings: React.FC = () => {
             fontSize: 16 * fontScale,
           }}
         >
-          {i18n.t("notificationsToggle")}
+          {i18n.t("turnNotifOff")}
         </Text>
         <Switch
           value={isNotif}

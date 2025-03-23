@@ -1,4 +1,9 @@
-import {ActivityIndicator,Animated,Easing,FlatList,Keyboard,Modal,StatusBar,Switch,Text,TextInput,TouchableOpacity,TouchableWithoutFeedback,View,Image,Button,StyleSheet} from "react-native";
+import {
+  ActivityIndicator, Animated, Easing, FlatList,
+  Keyboard, Modal, StatusBar, Switch, Text,
+  TextInput, TouchableOpacity, TouchableWithoutFeedback,
+  View, Image, Button
+} from "react-native";
 import "../../global.css";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useRef, useState } from "react";
@@ -6,13 +11,17 @@ import Icon from "react-native-vector-icons/FontAwesome";
 import { searchEbay, searchEbayByImage } from "@/ebayApi";
 import * as FileConversion from "expo-file-system";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { onAuthStateChanged, User } from "firebase/auth";
-import * as SplashScreen from "expo-splash-screen";
-import { auth } from "../firebaseconfig/firebase";
+import * as SplashScreen from 'expo-splash-screen';
 import { useTheme } from "../context/ThemeContext";
 import { Redirect } from "expo-router";
+import WebView from "react-native-webview";
+
+import { auth } from "../firebaseconfig/firebase";
+import { Database, ref as dbRef, getDatabase, remove, set } from 'firebase/database'
+import { onAuthStateChanged, User } from "firebase/auth";
 import { useTextScale } from "../context/TextScaleContext";
-import { useTranslation } from "react-i18next";
+import { loginWithEbay } from "@/ebayConfig";
+
 
 interface EbayItem {
   title: string;
@@ -26,49 +35,65 @@ interface EbayItem {
 SplashScreen.preventAutoHideAsync();
 
 export default function Index() {
-  const { t } = useTranslation();
-  const { fontScale } = useTextScale();
-  const { isDarkMode } = useTheme();
+  // Permissions
   const [permission, requestPermission] = useCameraPermissions();
+
+  // User Interface
   const [isExpanded, setIsExpanded] = useState(false);
   const [submitVisible, setSubmitVisible] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
-  const [auctionSetting, toggleAuctionSetting] = useState(false);
-  const [usedSetting, toggleUsedSetting] = useState(false);
-  const animatedWidth = useRef(new Animated.Value(0)).current;
-  const animatedYPos = useRef(new Animated.Value(300)).current;
-  const inputRef = useRef<TextInput>(null);
-  const cameraRef = useRef(null);
-  const [photoURI, setPhotoUri] = useState(null);
-  const [text, setText] = useState("");
+  const [isImageSearchActive, setIsImageSearchActive] = useState(false);
+  const [searchResultModal, setSearchResultModal] = useState(false);
 
-  // Modals
-  const [settingModal, setSettingModal] = useState(false);
-  const [soldModal, setSoldModal] = useState(false);
-  const [soldPageLink, setSoldPageLink] = useState("");
+  // Input Manager
+  const [text, setText] = useState('');
   const [history, setHistory] = useState<string[]>([]);
   const [historyVisible, setHistoryVisible] = useState(false);
-  const [cameraOpen, setCameraOpen] = useState(false);
-  const [isTextSearchActive, setIsTextSearchActive] = useState(false);
-  const [isImageSearchActive, setIsImageSearchActive] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [searchResultModal, setSearchResultModal] = useState(false);
+
+  // Settings
+  const [auctionSetting, toggleAuctionSetting] = useState(false);
+  const [usedItemSetting, toggleUsedItemSetting] = useState(false);
+  const [settingModal, setSettingModal] = useState(false);
+
+  // Search Manager
+  const [loadingSymbolState, setLoadingSymbolState] = useState(false);
   const [searchResults, setSearchResults] = useState<EbayItem[] | null>(null);
-  const [textSearchResults, setTextSearchResults] = useState<EbayItem[]>([]);
   const [imageSearchResults, setImageSearchResults] = useState<EbayItem[]>([]);
   const [matchingItems, setMatchingItems] = useState<EbayItem[] | null>(null);
-  const [user, setUser] = useState<User | null>(auth.currentUser);
-  const [loading, setLoading] = useState(true); // Helps with race condition
+  const [loading, setLoading] = useState(true);
+  const [searchWebViewState, setSearchWebViewState] = useState(false);
+  const [soldTextLink, setSoldTextLink] = useState(`https://www.ebay.com/sch/i.html?_nkw=${text}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`)
 
-  // Helper to scale font sizes
+  // User Stuff
+  const [user, setUser] = useState<User | null>(auth.currentUser);
+  const [userUID, setUserUID] = useState<string | undefined>(user?.uid);
+  const [database, setDatabase] = useState<Database>(getDatabase());
+
+
+  // Animation
+  const animatedWidth = useRef(new Animated.Value(0)).current;
+  const animatedYPos = useRef(new Animated.Value(300)).current;
+
+  // Camera
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const cameraRef = useRef(null);
+  const inputRef = useRef<TextInput>(null);
+  const [photoURI, setPhotoUri] = useState(null);
+
+  // Theme
+  const { fontScale } = useTextScale();
+  const { isDarkMode } = useTheme();  // For accessing dark mode
   const scale = (baseSize: number) => baseSize * fontScale;
 
-  // Listen to auth state changes
+
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      setUserUID(user?.uid);
+      setDatabase(getDatabase());
       if (user) {
-        console.log("USER IS LOGGED IN: ", user);
+        //console.log("USER IS LOGGED IN: ", user);
       }
       setLoading(false);
     });
@@ -84,20 +109,157 @@ export default function Index() {
     return <View />;
   }
 
+  // Gets Camera Permission
   if (!permission.granted) {
     return (
-      <View style={{ flex: 1 }}>
-        <Text
-          className="bg-black text-white rounded-md text-center text-2xl top-5 w-8/12"
-          style={{ fontSize: scale(24) }}
-        >
-          {t("CameraPermissionAlert")}
-        </Text>
-        <Button onPress={requestPermission} title="Grant Permission" />
+      <View className="flex-1">
+        <Text className="bg-black text-white rounded-md text-center text-2xl top-5 w-8/12" style={{ fontSize: scale(24) }}>We need your permission to show the camera</Text>
+        <Button onPress={requestPermission} title="grant permission" />
       </View>
     );
   }
 
+  // Saving to firebase Logic
+  const saveItem = async (item: EbayItem) => {
+    const cleanTitle = item.title.replace(/[^a-zA-Z0-9]/g, "_");
+    const saveRef = `users/${userUID}/savedItems/${cleanTitle}`
+    const itemRef = dbRef(database, saveRef);
+
+
+    try {
+      await set(itemRef, {
+        title: item.title,
+        price: item.price,
+        image: item.image,
+        condition: item.condition,
+        id: item.id
+      });
+      console.log('saved Item: ', item.title)
+    } catch (error: any) {
+      console.error("Save Error: ", error);
+    } finally {
+
+    }
+
+  }
+
+  // removing from firebase logic
+  const deleteSavedItem = async (item: EbayItem) => {
+    const cleanTitle = item.title.replace(/[^a-zA-Z0-9]/g, "_");
+    const saveRef = dbRef(database, `users/${userUID}/savedItems/${cleanTitle}`);
+    try {
+
+      await remove(saveRef);
+      console.log('Removed Item: ', item.title)
+    } catch (error: any) {
+      console.error("Delete Error: ", error);
+    } finally {
+
+    }
+
+  }
+
+  // React Component that holds a modal with item information.
+  const RenderResultItem = ({ item }: { item: EbayItem }) => {
+    const [resultModal, setResultModal] = useState(false);
+    const soldPageLink = `https://www.ebay.com/sch/i.html?_nkw=${item.title}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`
+    const [saveState, setSaveState] = useState(false);
+    const [soldPageModal, setSoldPageModal] = useState(false);
+    const textSettings = ' color-white'; // space needed at start
+
+    return (
+      <View className="bg-slate-600 flex-1 border-black rounded-md border-spacing-4 border-2 mb-4 mr-5 ml-5 w-2/5">
+        <TouchableOpacity
+          onPress={() => { setResultModal(true) }}
+          className=""
+        >
+
+          {/*This is the outside image*/}
+          <Image
+            source={{ uri: item.image }}
+            className="h-48 m-1 rounded-lg"
+            resizeMode='contain'
+          />
+          <Text className="text-center color-blue-900 font-semibold m-2 rounded-lg bg-zinc-400 text-sm">{item.title}</Text>
+          <Text className="text-left text-l ml-1 text-white">Listed Price: ${item.price.value}</Text>
+          <Text className="text-left ml-1 text-white">Condition: {item.condition}</Text>
+
+
+
+
+        </TouchableOpacity>
+
+        {/* Zoom up modal */}
+        <Modal visible={resultModal} onRequestClose={() => { setResultModal(false) }} animationType='fade'>
+          <View className="bg-blue-dark-200 flex-1">
+            <View className="flex-row justify-between items-center">
+
+              <TouchableOpacity className=" px-1 mt-4 ml-2  "
+                onPress={() => {
+                  setResultModal(false)
+                }}>
+                <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => {
+                if (saveState == false) {
+                  saveItem(item);
+                  setSaveState(true);
+                } else {
+                  deleteSavedItem(item);
+                  setSaveState(false);
+                }
+              }}
+                className="mt-4 mr-2 "
+              >
+                <Icon name={'star'} size={50} color={saveState ? 'yellow' : 'grey'} />
+              </TouchableOpacity>
+            </View>
+
+            <Text className={"text-center font-bold text-3xl bg-blue-dark-100 w-auto m-1 rounded-xl border-black border-2  mb-2 mt-2" + textSettings}>{item.title}</Text>
+            <Image
+              source={{ uri: item.image }}
+              className="w-11/12 h-1/2 m-1 rounded-lg self-center bg-slate-600"
+              resizeMode='contain'
+            />
+            <Text className={"text-left text-3xl ml-4 mt-6" + textSettings}>Listing Price: ${item.price.value}</Text>
+            <Text className={"text-left text-3xl ml-4" + textSettings}>Condition: {item.condition}</Text>
+
+
+            <View className="flex-row absolute bottom-2 justify-center content-center w-full">
+              <TouchableOpacity onPress={() => setSoldPageModal(true)} className="bg-orange-400 rounded-lg border-2 border-black justify-center w-2/5 self-center h-16" >
+                <Text className={"text-center text-2xl justify-center" + textSettings}>See Sold Items</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => { setText(item.title); handleSearch(); setResultModal(false) }} className="bg-orange-400 m-2 rounded-lg border-2 border-black w-1/2 justify-center self-center h-16" >
+                <Text className={"text-center text-2xl" + textSettings}>Search This Item</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View className="w-full h-2/3 self-center p-5">
+              <Modal visible={soldPageModal} animationType='slide' onRequestClose={() => { setSoldPageModal(false) }}>
+                <View className="bg-blue-dark-100">
+                  <TouchableOpacity className=" self-left px-1 mt-2 mb-2 ml-2  "
+                    onPress={() => {
+                      setSoldPageModal(false)
+                    }}>
+                    <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
+                  </TouchableOpacity>
+                </View>
+                <WebView
+                  source={{ uri: soldPageLink }}
+                  scalesPageToFit={true}
+                />
+              </Modal>
+            </View>
+
+          </View>
+
+        </Modal>
+      </View>
+    )
+  };
+
+  // Formatting for history to be output in history flatlist
   // Render history for search history list
   const renderHistory = ({ item }: { item: string }) => {
     return (
@@ -112,40 +274,14 @@ export default function Index() {
     );
   };
 
-  // Render each search result item
-  const renderResultItem = ({ item }: { item: EbayItem }) => (
-    <TouchableOpacity
-      onPress={() => {
-        alert(item.title);
-      }}
-      className="bg-gray-500 border-black rounded-md border-spacing-4 border-2 mb-4 mr-5 ml-5 w-40"
-    >
-      <Image
-        source={{ uri: item.image }}
-        className="w-36 h-36 m-1 rounded-lg"
-      />
-      <Text
-        style={{ fontSize: scale(14), textAlign: "center", fontWeight: "bold" }}
-        className="text-center color-blue-900"
-      >
-        {item.title}
-      </Text>
-      <Text style={{ fontSize: scale(14), textAlign: "center" }}>
-        {item.price.currency} {item.price.value}
-      </Text>
-      <Text style={{ fontSize: scale(14), textAlign: "center" }}>
-        {item.condition}
-      </Text>
-    </TouchableOpacity>
-  );
-
-  const dualSearchMerge = () => {
-    const textListingIds = new Set(textSearchResults.map((item) => item.id));
-    const matching = imageSearchResults.filter((item) =>
-      textListingIds.has(item.id)
-    );
-    setMatchingItems(matching);
-    console.log(matching);
+  const getAvgPrice = (list: EbayItem[] | null): number => {
+    if (list == null || list.length == 0) {
+      return 0;
+    } else {
+      const total = list.reduce((sum, item) => sum + parseFloat(item.price.value), 0);
+      const avg = total / list.length
+      return parseFloat(avg.toFixed(2));
+    }
   };
 
   const convertImageToBase64 = async (imageUri: string) => {
@@ -156,9 +292,45 @@ export default function Index() {
   };
 
   const searchBarcodeResult = (barcode: string) => {
-    setCameraOpen(false);
-    setText(barcode);
-    alert("Text has been set to: " + text);
+    setCameraOpen(false)
+    setText(barcode)
+    // alert('Text has been set to: ' + text)
+  };
+
+  const searchImageResults = async (imageUri: string) => {
+    const base64Image = await convertImageToBase64(imageUri);
+    setLoadingSymbolState(true)
+    await searchEbayByImage(base64Image).then((results) => {
+      setImageSearchResults(results);
+      setSearchResults(results);
+      setIsImageSearchActive(true)
+    }).catch((error) => {
+      console.error("Error searching eBay with image:", error)
+    }).finally(() => {
+      setLoadingSymbolState(false);
+      setSearchResultModal(true);
+    })
+  };
+
+  const searchTextResults = async () => {
+    setLoadingSymbolState(true)
+    if (text != '') {
+      await searchEbay(text).then((results) => {
+        setSearchResults(results);
+
+        if (isImageSearchActive) {
+          dualSearchMerge(results);
+        }
+      }).catch((error) => {
+        console.log('Error Searching eBay with text:', error);
+      }).finally(() => {
+        setLoadingSymbolState(false);
+        setSearchResultModal(true);
+      })
+      Keyboard.dismiss();
+    } else {
+      alert('Must Enter Search')
+    }
   };
 
   const takePicture = async (camera: { takePictureAsync: () => any } | null) => {
@@ -167,69 +339,30 @@ export default function Index() {
       setPhotoUri(photo.uri);
       setCameraOpen(false);
       searchImageResults(photo.uri);
-    } else {
-      alert("Null Camera");
     }
   };
 
-  const searchImageResults = async (imageUri: string) => {
-    const base64Image = await convertImageToBase64(imageUri);
-    setIsLoading(true);
-    await searchEbayByImage(base64Image)
-      .then((results) => {
-        setImageSearchResults(results);
-        setSearchResults(results);
-        setIsImageSearchActive(true);
-        setIsTextSearchActive(false);
-        setSearchResultModal(true);
-      })
-      .catch((error) => {
-        console.error("Error searching eBay with image:", error);
-      })
-      .finally(() => {
-        setIsLoading(false);
-        setSearchResultModal(true);
-      });
-  };
-
-  const searchTextResults = async () => {
-    setIsLoading(true);
-    if (text !== "") {
-      await searchEbay(text)
-        .then((results) => {
-          console.log("Found items: ", results.length);
-          setTextSearchResults(results);
-          setSearchResults(results);
-          setIsTextSearchActive(true);
-          setSearchResultModal(true);
-        })
-        .catch((error) => {
-          console.log("Error Searching eBay with text:", error);
-        })
-        .finally(() => {
-          if (isImageSearchActive === true) {
-            dualSearchMerge();
-          }
-          setIsLoading(false);
-          setSearchResultModal(true);
-        });
-
-      Keyboard.dismiss();
-      {/*reminder to come back and look at this I have an idea */}
-    } else {
-      alert("Must Enter Search");
-    }
-  };
-
-  const searchSold = () => {
-    if (text === "") {
+  // logic to handle searching from the text
+  const handleSearch = () => {
+    if (text === '' || text === null) {
       alert("Must Enter Search");
     } else {
-      setSoldModal(true);
-      setSoldPageLink(
-        `https://www.ebay.com/sch/i.html?_nkw=${text}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`
-      );
+      handleHistory();
+      searchTextResults();
+      setSoldTextLink(`https://www.ebay.com/sch/i.html?_nkw=${text}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`)
+      handleSearchClose();
     }
+  };
+
+  const dualSearchMerge = (textResults: any[]) => {
+    const textListingIds = new Set(textResults.map(item => item.id))
+    const matching = imageSearchResults.filter(item => textListingIds.has(item.id))
+    setMatchingItems(matching);
+  };
+
+  const handleHistory = () => {
+    const cleanHistor = history.filter(item => item != text);
+    setHistory([text, ...cleanHistor.slice(0, 9)]);
   };
 
   // Animation for opening search bar
@@ -281,28 +414,8 @@ export default function Index() {
     });
   };
 
-  // Update search history
-  const handleHistory = () => {
-    const cleanHistory = history.filter((item) => item !== text);
-    setHistory([text, ...cleanHistory.slice(0, 9)]);
-  };
 
-  // Handle search from text
-  const handleSearch = () => {
-    if (text === "" || text === null) {
-      {/*remind me to come back and edit this */}
-      alert("Must Enter Search");
-    } else {
-      handleHistory();
-      searchTextResults();
-      handleSearchClose();
-    }
-
-    if (isImageSearchActive) {
-      dualSearchMerge();
-    }
-  };
-
+  // Home Page
   if (!loading && user) {
     return (
       <TouchableWithoutFeedback
@@ -316,7 +429,7 @@ export default function Index() {
           <StatusBar barStyle={"light-content"} className="bg-zinc-900" />
 
           {/* Settings Gear */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={() => {
               setSettingModal(true);
             }}
@@ -324,25 +437,22 @@ export default function Index() {
             style={{ zIndex: 10 }}
           >
             <Icon name="gear" size={50} color="darkgrey" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           {/* Title */}
-          <View className="flex-row items-center justify-center top-16 absolute">
+          <View className="flex-row items-center justify-center top-24 absolute">
             <Text
               className={styles.TitleText.join(" ") + " text-orange-600"}
-              style={{ fontSize: scale(72) }}
             >
               C
             </Text>
             <Text
               className={styles.TitleText.join(" ") + " text-white"}
-              style={{ fontSize: scale(72) }}
             >
               2
             </Text>
             <Text
               className={styles.TitleText.join(" ") + " text-yellow-300"}
-              style={{ fontSize: scale(72) }}
             >
               G
             </Text>
@@ -357,7 +467,7 @@ export default function Index() {
                     style={{ width: animatedWidth, top: animatedYPos }}
                   >
                     <TextInput
-                      placeholder= {t("SearchEnterBox")}
+                      placeholder="Enter Here"
                       value={text}
                       onChangeText={setText}
                       onFocus={() => setSearchFocused(true)}
@@ -366,11 +476,10 @@ export default function Index() {
                       onSubmitEditing={() => {
                         handleSearch();
                       }}
-                      className={`w-full self-center border-2 rounded-2xl h-12 ${
-                        searchFocused
-                          ? "border-blue-500 bg-blue-200"
-                          : "border-black bg-gray-400"
-                      }`}
+                      className={`w-full self-center border-2 rounded-2xl h-14 ${searchFocused
+                        ? "border-blue-500 bg-blue-200"
+                        : "border-black bg-gray-400"
+                        }`}
                       ref={inputRef}
                       style={{ fontSize: scale(16) }}
                     />
@@ -412,7 +521,7 @@ export default function Index() {
                   onPress={handleSearchOpen}
                 >
                   <Text style={{ fontSize: scale(16) }} className="text-gray-600">
-                    {t("HomeSearchBox")}
+                    Search
                   </Text>
                 </TouchableOpacity>
 
@@ -423,15 +532,15 @@ export default function Index() {
                   }}
                 >
                   <Text style={{ fontSize: scale(16) }} className="text-gray-600">
-                    {t("CameraBox")}
+                    Open Camera
                   </Text>
                 </TouchableOpacity>
               </View>
             )}
           </View>
 
-          {/* Camera Modal */}
-          <Modal visible={cameraOpen}>
+          {/* Camera Element. Cant disable shutter audio unfortunetly. may look into switching to react-native-vision-camera*/}
+          <Modal visible={cameraOpen} onRequestClose={() => { setCameraOpen(false) }}>
             <CameraView
               ref={cameraRef}
               style={{ flex: 1 }}
@@ -440,7 +549,7 @@ export default function Index() {
               mute={true}
               animateShutter={false}
               barcodeScannerSettings={{
-                barcodeTypes: ["ean13","ean8","upc_a","upc_e","code128","code39","itf14",],
+                barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e", "code128", "code39", "itf14",],
               }}
               onBarcodeScanned={({ data }) => searchBarcodeResult(data)}
             >
@@ -450,10 +559,10 @@ export default function Index() {
                 onPress={() => setCameraOpen(false)}
               >
                 <Text
-                  style={{ fontSize: scale(12) }}
+                  style={{ fontSize: scale(16) }}
                   className="text-blue-600 text-center"
                 >
-                  {t("CloseCameraButton")}
+                  Close Camera
                 </Text>
               </TouchableOpacity>
 
@@ -465,8 +574,8 @@ export default function Index() {
             </CameraView>
           </Modal>
 
-          {/* Settings Modal */}
-          <Modal visible={settingModal} transparent={true} animationType={"fade"} className="flex-1">
+          {/* Settings Screen */}
+          <Modal visible={settingModal} transparent={true} animationType={'fade'} className="flex-1 " onRequestClose={() => { setSettingModal(false) }}>
             <View className="flex-1 justify-center align-middle items-center bg-black/50">
               <View className="w-96 h-96 bg-slate-600 border-4 rounded-2xl">
                 <TouchableOpacity onPress={() => setSettingModal(false)} className="w-12">
@@ -476,11 +585,11 @@ export default function Index() {
                   className="align-middle text-center font-semibold text-4xl text-white"
                   style={{ fontSize: scale(32) }}
                 >
-                  {t("HomeSearchSettings")}
+                  Search Settings
                 </Text>
                 <View className="w-36 h-12 bg-white flex-row items-center justify-between p-2 mt-6 rounded-lg self-center border-2">
                   <Text style={{ fontSize: scale(16) }} className="text-m">
-                    {t("HomeAuctionToggle")}
+                    Auctions
                   </Text>
                   <Switch
                     value={auctionSetting}
@@ -489,19 +598,12 @@ export default function Index() {
                     thumbColor={"#f5dd4b"}
                   />
                 </View>
-                <View className="w-36 h-12 bg-white flex-row items-center justify-between p-2 mt-4 rounded-lg self-center border-2">
-                  {usedSetting ? (
-                    <Text style={{ fontSize: scale(18) }} className="text-lg">
-                      {t("HomeUsedToggle")}
-                    </Text>
-                  ) : (
-                    <Text style={{ fontSize: scale(18) }} className="text-lg">
-                      {t("HomeNewToggle")}
-                    </Text>
-                  )}
+
+                <View className="w-36 h-12 bg-white flex-row items-center justify-between p-2  mt-4 rounded-lg self-center border-2">
+                  {usedItemSetting ? (<Text className="text-lg">Used</Text>) : (<Text className="text-lg">New</Text>)}
                   <Switch
-                    value={usedSetting}
-                    onValueChange={toggleUsedSetting}
+                    value={usedItemSetting}
+                    onValueChange={toggleUsedItemSetting}
                     trackColor={{ true: "#767577", false: "#81b0ff" }}
                     thumbColor={"#f5dd4b"}
                   />
@@ -510,57 +612,51 @@ export default function Index() {
             </View>
           </Modal>
 
-          {/* Search Results Modal */}
-          <Modal visible={searchResultModal}>
-            <SafeAreaView className="flex-1 bg-blue-dark">
-              <TouchableOpacity
-                className="self-left px-1 mt-4 ml-2"
-                onPress={() => {
-                  setSearchResultModal(false);
-                  setText("");
-                  setIsImageSearchActive(false);
-                  setIsTextSearchActive(false);
-                  setPhotoUri(null);
-                  setImageSearchResults([]);
-                  setTextSearchResults([]);
-                  setMatchingItems(null);
-                }}
-              >
-                <Icon name={"arrow-circle-o-left"} color={"orange"} size={50} />
-              </TouchableOpacity>
+          {/* Search View Modal */}
+          <Modal visible={searchResultModal} onRequestClose={() => { setSearchResultModal(false) }}>
+            <SafeAreaView className="h-full w-full bg-blue-dark absolute">
+              <View className="flex-row">
+                {/*Back Button that refreshes all states*/}
+                <TouchableOpacity className=" self-left px-1 mt-4 ml-2  "
+                  onPress={() => {
+                    setSearchResultModal(false);
+                    setText('');
+                    setIsImageSearchActive(false);
+                    setPhotoUri(null);
+                    setImageSearchResults([]);
+                    setMatchingItems(null)
+                  }}>
+                  <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
+                </TouchableOpacity>
 
-              <View className="w-5/6 self-center relative mt-0 flex-row">
+                <Text className="self-center text-white font-bold text-2xl  ">
+                  {"\t"}Avg Price: ${getAvgPrice(matchingItems ? matchingItems : searchResults)} {"\n"}
+                  {"\t"}Item's Found: {(matchingItems ? matchingItems : searchResults)?.length}
+                </Text>
+
+              </View>
+
+              <View className=" w-5/6 self-center relative mt-0 flex-row">
                 <TextInput
                   placeholder="Enter Here"
                   value={text}
                   onChangeText={setText}
                   onFocus={() => setSearchFocused(true)}
                   onBlur={() => setSearchFocused(false)}
-                  autoFocus={false}
-                  onSubmitEditing={() => {
-                    handleSearch();
-                  }}
-                  className={`w-5/6 self-center border-2 rounded-2xl h-12 ${
-                    searchFocused
-                      ? "border-blue-500 bg-blue-200"
-                      : "border-black bg-gray-400"
-                  }`}
+                  autoFocus={true}
+                  onSubmitEditing={() => { handleSearch(); }}
+                  className={`w-full self-center border-2 rounded-2xl h-14 ${searchFocused ? 'border-blue-500 bg-blue-200' : 'border-black bg-gray-400'}`}
                   ref={inputRef}
                   style={{ fontSize: scale(16) }}
                 />
 
-                <TouchableOpacity
-                  onPress={() => {
-                    handleSearch();
-                  }}
-                  className="absolute right-20 top-2 z-12"
-                >
-                  <Icon name="search" size={25} color="blue" />
+                <TouchableOpacity onPress={() => { handleSearch(); }} className="absolute right-16 top-3 z-12">
+                  <Icon name="search" size={25} color='blue' />
                 </TouchableOpacity>
 
                 {photoURI ? (
                   <TouchableOpacity
-                    className="absolute right-1"
+                    className="absolute right-1 top-1"
                     onPress={() => {
                       setPhotoUri(null);
                       setSearchResultModal(false);
@@ -576,21 +672,13 @@ export default function Index() {
                     )}
                   </TouchableOpacity>
                 ) : (
-                  <TouchableOpacity
-                    className="absolute right-1"
-                    onPress={() => {
-                      setPhotoUri(null);
-                      setSearchResultModal(false);
-                      setMatchingItems(null);
-                      setCameraOpen(true);
-                    }}
-                  >
-                    <Icon
-                      name="camera"
-                      size={40}
-                      color={"orange"}
-                      className="w-12 h-12 rounded-xl z-10"
-                    />
+                  <TouchableOpacity className="absolute right-1 top-1" onPress={() => {
+                    setPhotoUri(null);
+                    setSearchResultModal(false);
+                    setMatchingItems(null);
+                    setCameraOpen(true);
+                  }}>
+                    {<Icon name='camera' size={35} color={'orange'} className=" w-12 h-12 rounded-xl z-10 mt-1" />}
                   </TouchableOpacity>
                 )}
               </View>
@@ -599,7 +687,7 @@ export default function Index() {
                 {(searchResults || matchingItems) ? (
                   <FlatList
                     data={matchingItems ? matchingItems : searchResults}
-                    renderItem={renderResultItem}
+                    renderItem={({ item }) => <RenderResultItem item={item} />}
                     keyExtractor={(item) => item.id}
                     numColumns={2}
                     columnWrapperStyle={{ justifyContent: "space-between" }}
@@ -608,19 +696,50 @@ export default function Index() {
                 ) : (
                   <View className="bg-white text-2xl w-10/12 self-center">
                     <Text style={{ fontSize: scale(24), textAlign: "center" }}>
-                      {t("SearchItemsFound")}
+                      No Items Found
                     </Text>
                   </View>
                 )}
               </View>
+
+              <View className="absolute bottom-0 w-full bg-blue-dark py-4 z-20 border-black border-t-2">
+                <TouchableOpacity
+                  onPress={() => {
+                    setSearchWebViewState(true);
+                  }}
+                  className="self-center bg-orange py-2 px-8 rounded-xl">
+                  <Text className="text-white text-xl">View Sold On Web</Text>
+                </TouchableOpacity>
+              </View>
             </SafeAreaView>
           </Modal>
 
-          {isLoading && (
-            <View className="absolute top-0 left-0 right-0 bottom-0 justify-center align-middle bg-black/50">
-              <ActivityIndicator size="large" color="white" />
+          {/* */}
+          <Modal visible={searchWebViewState} onRequestClose={() => { setSearchWebViewState(false) }}>
+            <View className="flex-1">
+              <View className="bg-blue-dark-100">
+                <TouchableOpacity className=" self-left px-1 mt-2 mb-2 ml-2  "
+                  onPress={() => {
+                    setSearchWebViewState(false)
+                  }}>
+                  <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
+                </TouchableOpacity>
+              </View>
+
+              <WebView
+                source={{ uri: soldTextLink }}
+                scalesPageToFit={true}
+              />
             </View>
-          )}
+          </Modal>
+
+          {/* Converted to a modal for better useage and to overlay ontop of other modals */}
+          <Modal visible={loadingSymbolState} transparent={true} animationType="fade">
+            <View className="absolute top-0 left-0 right-0 bottom-0 justify-center align-middle bg-black/50 z-auto">
+              <ActivityIndicator size='large' color="white" />
+            </View>
+          </Modal>
+
         </SafeAreaView>
       </TouchableWithoutFeedback>
     );
@@ -632,7 +751,9 @@ export default function Index() {
     return <Redirect href="/Pages/LoginPage" />;
   }
 
-  // While loading, display a loading view
+  /*
+  * While loading, display that the page is loading
+  * This should always be behind the splash screen, but I'm leaving it here anyways just to be safe */
   if (loading) {
     return (
       <SafeAreaView>
