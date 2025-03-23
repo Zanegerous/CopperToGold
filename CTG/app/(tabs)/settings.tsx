@@ -8,6 +8,8 @@ import { auth } from "../firebaseconfig/firebase";
 import { useRouter } from "expo-router";
 import { useNotifSetting } from "../context/NotificationContext";
 import i18n from "../i18n";
+import { loginWithEbay } from "@/ebayConfig";
+import { getUserID } from "../functionForApp/simpleFunctions";
 
 type FontScaleOption = {
   label: string;
@@ -129,7 +131,7 @@ const Settings: React.FC = () => {
             fontSize: 16 * fontScale,
           }}
         >
-          {i18n.t("notificationsToggle")}
+          {i18n.t("turnNotifOff")}
         </Text>
         <Switch
           value={isNotif}
@@ -159,6 +161,20 @@ const Settings: React.FC = () => {
           dropDownContainerStyle={{ backgroundColor: isDarkMode ? "#333" : "#f4f4f4", borderColor: isDarkMode ? "#555" : "#ccc" }}
           placeholderStyle={{ color: isDarkMode ? "#ccc" : "#888" }}
         />
+      </View>
+
+      <View className="flex-row items-center">
+        <TouchableOpacity
+          className="bg-blue-dark-200 h-16 w-full justify-center items-center mt-2 rounded-lg"
+          onPress={() => {
+            loginWithEbay(getUserID());
+          }}
+        >
+          <Text style={{ fontSize: 16 * fontScale }} className="text-white">
+            Ebay Login
+          </Text>
+
+        </TouchableOpacity>
       </View>
 
       {/* Language Picker */}
@@ -196,6 +212,8 @@ const Settings: React.FC = () => {
           {i18n.t("deleteAccount")}
         </Text>
       </TouchableOpacity>
+
+
 
       {/* Warning Modal */}
       <Modal visible={isModalOpen} transparent={true}>
