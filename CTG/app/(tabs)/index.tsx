@@ -429,7 +429,7 @@ export default function Index() {
           <StatusBar barStyle={"light-content"} className="bg-zinc-900" />
 
           {/* Settings Gear */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={() => {
               setSettingModal(true);
             }}
@@ -437,7 +437,7 @@ export default function Index() {
             style={{ zIndex: 10 }}
           >
             <Icon name="gear" size={50} color="darkgrey" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           {/* Title */}
           <View className="flex-row items-center justify-center top-24 absolute">
@@ -533,17 +533,6 @@ export default function Index() {
                 >
                   <Text style={{ fontSize: scale(16) }} className="text-gray-600">
                     Open Camera
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  className="bg-white h-16 w-56 justify-center items-center mt-8 rounded-lg"
-                  onPress={() => {
-                    loginWithEbay(userUID)
-                  }}
-                >
-                  <Text style={{ fontSize: scale(16) }} className="text-gray-600">
-                    Ebay Login
                   </Text>
                 </TouchableOpacity>
               </View>

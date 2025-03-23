@@ -1,5 +1,5 @@
 import axios from "axios";
-import { ebayConfig } from "./ebayConfig";
+import { ebayConfig, loginWithEbay } from "./ebayConfig";
 import { ref as dbRef, getDatabase, get, remove, set, ref } from 'firebase/database'
 import { useState } from "react";
 import { auth } from "./app/firebaseconfig/firebase";
@@ -9,12 +9,14 @@ const retrieveToken = async (uid: string) => {
   try {
     const db = getDatabase();
     const ref = dbRef(db, `users/${uid}/token`);
+    const user = auth.currentUser;
 
     const data = await get(ref);
 
     if (!data.exists()) {
-      alert('user needs to log in'); // possibly force open log in screen here?
-      return '';
+      alert('log in and try again');
+      loginWithEbay(user!.uid);
+      return 'none';
     } else {
       // console.log(data.val().ebayToken);
       return (data.val().ebayToken);
@@ -60,6 +62,9 @@ export const searchEbay = async (query: string): Promise<EbayItem[]> => {
   // retry's if refresh is an option
   for (let attempt = 1; attempt <= 2; attempt++) {
     let accessToken = await retrieveToken(user!.uid); // always grabs the latest token
+    if (accessToken == 'none') {
+      break;
+    }
     try {
       do {
         const response: any = await axios.get(
@@ -130,6 +135,9 @@ export const searchEbayByImage = async (imageQuery: string): Promise<EbayItem[]>
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
       const accessToken = await retrieveToken(user!.uid);
+      if (accessToken == 'none') {
+        break;
+      }
       do {
         const response = await axios.post(
           `${ebayConfig.baseURL}/buy/browse/v1/item_summary/search_by_image`,
