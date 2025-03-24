@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, Text, TextInput, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, {Marker} from 'react-native-maps';
 import * as Location from 'expo-location';
+import "../../global.css";
+import defaultStyle from "../styles/defaultStyle"; // Default style
+import { useTheme } from "../context/ThemeContext"; // Used for getting if app is in light or dark mode
+import { useColorScheme } from "nativewind"; // Used for setting light/dark mode
+import Icon from "react-native-vector-icons/AntDesign";
 
 export default function App() {
+  // Styling Stuff
+  const { isDarkMode } = useTheme(); // Get if app is in light or dark mode
+  const { colorScheme, setColorScheme } = useColorScheme(); // Set up for NativeWind
+  setColorScheme(isDarkMode ? "dark" : "light"); // Automatically set if the page is in light or dark mode
+
+  // Location Stuff
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   // Default to Ruston if permission denied
   const [lat, setLat] = useState(32.523205);
@@ -40,6 +51,45 @@ export default function App() {
     getCurrentLocation();
   }, []);
 
+  ///// Sale Creation Stuff /////
+  const [createSaleModal, setCreateSaleModal] = useState(false);
+  const [saleName, setSaleName] = useState("");
+  // Address
+  const [streetAddress, setStreetAddress] = useState("");
+  const [secondaryStreetAddress, setSecondaryStreetAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [stateUS, setStateUS] = useState(""); // state as in the state in America. Might try to come up with a better name for this later.
+  const [zipCode, setZipCode] = useState("");
+  // Dates
+  // const [startDate, setStartDate] = useState<Date | null>(null); This is the correct one, fix this later
+  const [startDate, setStartDate] = useState("");
+  const [startDateList, setStartDateList] = useState([]);
+  // const [endDate, setEndDate] = useState<Date | null>(null); This is the correct one, fix this later
+  const [endDate, setEndDate] = useState("");
+  const [endDates, setEndDates] = useState([]);
+  // Misc Sale Creation Stuff
+  const [saleType, setSaleType] = useState("");
+  const [details, setDetails] = useState("");
+  const [website, setWebsite] = useState("");
+  /* 
+    interface SaleObject {
+    title: string;
+    type: string;
+    address: {
+        primary_line: string,
+        secondary_line: string,
+        city: string,
+        state: string,
+        zip_code: string
+    };
+    dates: {startDates: [], endDates: []};
+    details: string;
+    website: string;
+    creator: string;
+    id: string;
+    */
+
+
   let parseDesc = (desc : string, startDate : Date, endDate : Date) => {
     // let returnStr : string = desc + "\n"
     let stDateDMY = startDate.toLocaleDateString("en-US")
@@ -49,6 +99,44 @@ export default function App() {
     // let endDateHMS = new Intl.DateTimeFormat("en-US", {timeStyle: "short"}).format(endDate)
     // returnStr += "End: " + endDateDMY + " at " + endDateHMS;
     return returnStr
+  }
+
+  const handlePress = () => {
+    // Handle button press
+    console.log('Create Button pressed!');
+    setCreateSaleModal(true);
+  };
+
+  const handleSubmit = () => {
+    // Handle button press
+    console.log('Submit Button pressed!');
+    console.log("Sale Name = " + saleName);
+    console.log('Address Info');
+    console.log("\tAddress = " + streetAddress);
+    console.log("\tApt/Suite = " + secondaryStreetAddress);
+    console.log("\tCity = " + city);
+    console.log("\tState = " + stateUS);
+    console.log("\tZip Code = " + zipCode);
+    console.log("Dates");
+    console.log("\tStart Date = " + startDate);
+    console.log("\tEnd Date = " + endDate);
+    console.log("Details = " + details);
+    console.log("Website = " + website);
+    resetCreateSale()
+  };
+
+  const resetCreateSale = () => {
+    setCreateSaleModal(false);
+    setSaleName('');
+    setStreetAddress('');
+    setSecondaryStreetAddress('');
+    setCity('');
+    setStateUS('');
+    setZipCode('');
+    setStartDate('');
+    setEndDate('');
+    setDetails('');
+    setWebsite('');
   }
 
   return (
@@ -62,6 +150,7 @@ export default function App() {
           longitudeDelta: lngDelta,
         }}
         showsUserLocation={true}
+        showsMyLocationButton={true}
       >
         {sales.map((marker, index) => (
           <Marker
@@ -72,6 +161,186 @@ export default function App() {
           />
         ))}
       </MapView>
+      <TouchableOpacity style={styles.button} onPress={handlePress}>
+        <Icon name="plussquare" size={50} color="black" />
+      </TouchableOpacity>
+      <Modal visible={createSaleModal} animationType='slide' onRequestClose={() => { setCreateSaleModal(false) }}>
+        <View>
+          <TouchableOpacity className={`${defaultStyle.button} bg-red-600`} onPress={ resetCreateSale }>
+            <Text className={`${defaultStyle.buttonText}`}>
+              Cancel
+            </Text>
+          </TouchableOpacity>
+          {/* Sale Name */}
+          <View className="w-full mb-4">
+            <Text className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
+              Sale Name
+            </Text>
+            <TextInput 
+              className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
+              placeholder="Enter the name of your sale"
+              placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
+              autoCapitalize="none"
+              keyboardType="default"
+              onChangeText={setSaleName}
+              value={saleName}
+            />
+          </View>
+          {/* Address Stuff */}
+          <View className="w-full mb-4">
+            <Text className={`${defaultStyle.text} text-center`}>
+              Address information
+            </Text>
+            {/* Street Address */}
+            <View>
+              <Text className={`${defaultStyle.text}`}>
+                Street Address
+              </Text>
+              <TextInput 
+                className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
+                autoCapitalize="none"
+                keyboardType="default"
+                onChangeText={setStreetAddress}
+                value={streetAddress}
+              />
+            </View>
+            {/* Apt/Suite */}
+            <View>
+              <Text className={`${defaultStyle.text}`}>
+                Apt/Suite
+              </Text>
+              <TextInput 
+                className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
+                autoCapitalize="none"
+                keyboardType="default"
+                onChangeText={setSecondaryStreetAddress}
+                value={secondaryStreetAddress}
+              />
+            </View>
+            {/* City */}
+            <View>
+              <Text className={`${defaultStyle.text}`}>
+                City
+              </Text>
+              <TextInput 
+                className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
+                autoCapitalize="none"
+                keyboardType="default"
+                onChangeText={setCity}
+                value={city}
+              />
+            </View>
+            {/* State */}
+            <View>
+              <Text className={`${defaultStyle.text}`}>
+                State
+              </Text>
+              {/* TODO: Turn this into a dropdown menu */}
+              <TextInput 
+                className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
+                autoCapitalize="none"
+                keyboardType="default"
+                onChangeText={setStateUS}
+                value={stateUS}
+              />
+            </View>
+            {/* Zip Code */}
+            <View>
+              <Text className={`${defaultStyle.text}`}>
+                ZipCode
+              </Text>
+              <TextInput 
+                className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
+                autoCapitalize="none"
+                keyboardType="default"
+                onChangeText={setZipCode}
+                value={zipCode}
+              />
+            </View>
+          </View>
+          <View>
+            {/* Date Stuff */}
+            {/* TODO: Allow users to actually input multiple dates */}
+            <View>
+              {/* Start Dates */}
+              <Text className={`${defaultStyle.text}`}>
+                Start Dates
+              </Text>
+              <TextInput 
+                className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
+                autoCapitalize="none"
+                keyboardType="default"
+                onChangeText={setStartDate}
+                value={startDate}
+              />
+            </View>
+            <View>
+              {/* End Dates */}
+              <Text className={`${defaultStyle.text}`}>
+                End Dates
+              </Text>
+              <TextInput 
+                className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
+                autoCapitalize="none"
+                keyboardType="default"
+                onChangeText={setEndDate}
+                value={endDate}
+              />
+            </View>
+          </View>
+          {/* Details */}
+          <View>
+            <Text className={`${defaultStyle.text}`}>
+              Details
+            </Text>
+            <TextInput 
+              className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
+              autoCapitalize="none"
+              keyboardType="default"
+              placeholder="Add any extra details about your sale here"
+              placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
+              onChangeText={setDetails}
+              value={details}
+            />
+          </View>
+          {/* Sale Type */}
+          <View>
+            <Text className={`${defaultStyle.text}`}>
+              Sale Type
+            </Text>
+            {/* TODO: Make this a drop down menu */}
+            <TextInput 
+              className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
+              autoCapitalize="none"
+              keyboardType="default"
+              placeholder=""
+              placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
+              onChangeText={setSaleType}
+              value={saleType}
+            />
+          </View>
+          {/* Website */}
+          <View>
+            <Text className={`${defaultStyle.text}`}>
+              Other places this sale can be found
+            </Text>
+            <TextInput 
+              className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
+              autoCapitalize="none"
+              keyboardType="default"
+              placeholder="If your sale is listed on any other websites (e.g., estatesales.net) list them here"
+              placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
+              onChangeText={setWebsite}
+              value={website}
+            />
+          </View>
+          <TouchableOpacity className={`${defaultStyle.button}`} onPress={handleSubmit}>
+            <Text className={`${defaultStyle.buttonText}`}>
+              List your sale!
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -83,6 +352,18 @@ const styles = StyleSheet.create({
   map: {
     width: '100%',
     height: '100%',
+  },
+  button: {
+    position: 'absolute',
+    top: 20,
+    right: 350,
+    padding: 5,
+    borderRadius: 5,
+    zIndex: 1, // Ensures the button stays above the map
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
   },
 });
 
