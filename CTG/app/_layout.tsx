@@ -3,7 +3,7 @@ import { Stack } from "expo-router/stack";
 import { ThemeProvider } from "../app/context/ThemeContext";
 import { TextScaleProvider } from "../app/context/TextScaleContext";
 import { useFonts } from "expo-font";
-
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "./i18n";
 
 export default function Layout() {
@@ -21,14 +21,16 @@ export default function Layout() {
   }
 
   return (
-    <ThemeProvider>
-      <TextScaleProvider>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="Pages/LoginPage" options={{ headerShown: false }} />
-          <Stack.Screen name="Pages/RegisterPage" options={{ headerShown: false }} />
-        </Stack>
-      </TextScaleProvider>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider>
+        <TextScaleProvider>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="Pages/LoginPage" options={{ headerShown: false }} />
+            <Stack.Screen name="Pages/RegisterPage" options={{ headerShown: false }} />
+          </Stack>
+        </TextScaleProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
