@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, TouchableOpacity, View, Text, TextInput, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MapView, {Marker} from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import "../../global.css";
 import defaultStyle from "../styles/defaultStyle"; // Default style
 import { useTheme } from "../context/ThemeContext"; // Used for getting if app is in light or dark mode
 import { useColorScheme } from "nativewind"; // Used for setting light/dark mode
 import Icon from "react-native-vector-icons/AntDesign";
+import { useTranslation } from "react-i18next";
 
 export default function App() {
   // Styling Stuff
-  const { isDarkMode } = useTheme(); // Get if app is in light or dark mode
-  const { colorScheme, setColorScheme } = useColorScheme(); // Set up for NativeWind
-  setColorScheme(isDarkMode ? "dark" : "light"); // Automatically set if the page is in light or dark mode
+  const { t } = useTranslation();
+  const { isDarkMode } = useTheme(); 
+  const { colorScheme, setColorScheme } = useColorScheme(); 
+  setColorScheme(isDarkMode ? "dark" : "light"); 
 
   // Location Stuff
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
@@ -21,12 +23,11 @@ export default function App() {
   const [lat, setLat] = useState(32.523205);
   const [lng, setLng] = useState(-92.637924);
 
-  const latDelta = 0.00922
-  const lngDelta = 0.00421
+  const latDelta = 0.00922;
+  const lngDelta = 0.00421;
 
   useEffect(() => {
     async function getCurrentLocation() {
-      
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         console.log('Permission to access location DENIED');
@@ -35,19 +36,18 @@ export default function App() {
 
       console.log('Permission to access location GRANTED');
       let location = await Location.getCurrentPositionAsync({});
-      console.log(JSON.stringify(location))
+      console.log(JSON.stringify(location));
       setLocation(location);
       if (location) {
-        console.log("\nLocation recieved")
+        console.log("\nLocation recieved");
         let locCordsObj = location.coords;
         setLat(locCordsObj.latitude);
         setLng(locCordsObj.longitude);
-        console.log("Latitude: " + lat + ", Longitude: " + lng + "\n")
+        console.log("Latitude: " + lat + ", Longitude: " + lng + "\n");
       } else {
-        console.log("\nLocation could not be gotten; Defaulting to Ruston Coordinates \n")
+        console.log("\nLocation could not be gotten; Defaulting to Ruston Coordinates \n");
       }
     }
-
     getCurrentLocation();
   }, []);
 
@@ -58,57 +58,34 @@ export default function App() {
   const [streetAddress, setStreetAddress] = useState("");
   const [secondaryStreetAddress, setSecondaryStreetAddress] = useState("");
   const [city, setCity] = useState("");
-  const [stateUS, setStateUS] = useState(""); // state as in the state in America. Might try to come up with a better name for this later.
+  const [stateUS, setStateUS] = useState("");
   const [zipCode, setZipCode] = useState("");
   // Dates
-  // const [startDate, setStartDate] = useState<Date | null>(null); This is the correct one, fix this later
   const [startDate, setStartDate] = useState("");
-  const [startDateList, setStartDateList] = useState([]);
-  // const [endDate, setEndDate] = useState<Date | null>(null); This is the correct one, fix this later
   const [endDate, setEndDate] = useState("");
-  const [endDates, setEndDates] = useState([]);
   // Misc Sale Creation Stuff
   const [saleType, setSaleType] = useState("");
   const [details, setDetails] = useState("");
   const [website, setWebsite] = useState("");
-  /* 
-    interface SaleObject {
-    title: string;
-    type: string;
-    address: {
-        primary_line: string,
-        secondary_line: string,
-        city: string,
-        state: string,
-        zip_code: string
-    };
-    dates: {startDates: [], endDates: []};
-    details: string;
-    website: string;
-    creator: string;
-    id: string;
-    */
 
-
-  let parseDesc = (desc : string, startDate : Date, endDate : Date) => {
-    // let returnStr : string = desc + "\n"
-    let stDateDMY = startDate.toLocaleDateString("en-US")
-    let stDateHMS = new Intl.DateTimeFormat("en-US", {timeStyle: "short"}).format(startDate)
+  let parseDesc = (desc: string, startDate: Date, endDate: Date) => {
+    let stDateDMY = startDate.toLocaleDateString("en-US");
+    let stDateHMS = new Intl.DateTimeFormat("en-US", { timeStyle: "short" }).format(startDate);
     let returnStr = stDateDMY + " at " + stDateHMS;
-    // let endDateDMY = endDate.toLocaleDateString("en-US")
-    // let endDateHMS = new Intl.DateTimeFormat("en-US", {timeStyle: "short"}).format(endDate)
-    // returnStr += "End: " + endDateDMY + " at " + endDateHMS;
-    return returnStr
-  }
+    return returnStr;
+  };
 
   const handlePress = () => {
-    // Handle button press
     console.log('Create Button pressed!');
     setCreateSaleModal(true);
   };
 
   const handleSubmit = () => {
-    // Handle button press
+    debugLog();
+    resetCreateSale();
+  };
+
+  const debugLog = () => {
     console.log('Submit Button pressed!');
     console.log("Sale Name = " + saleName);
     console.log('Address Info');
@@ -122,7 +99,6 @@ export default function App() {
     console.log("\tEnd Date = " + endDate);
     console.log("Details = " + details);
     console.log("Website = " + website);
-    resetCreateSale()
   };
 
   const resetCreateSale = () => {
@@ -137,12 +113,29 @@ export default function App() {
     setEndDate('');
     setDetails('');
     setWebsite('');
-  }
+  };
+
+  // Calculator states
+  const [calcVisible, setCalcVisible] = useState(false);
+  const [calcExpression, setCalcExpression] = useState("");
+  const [calcResult, setCalcResult] = useState("");
+
+  // Simple method to evaluate the expression
+  const handleCalculate = () => {
+    try {
+      // Evaluate the expression. In real apps, you'd want a safer parser than eval.
+      const result = eval(calcExpression);
+      setCalcResult(String(result));
+    } catch (error) {
+      setCalcResult("Error");
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <MapView 
-        style={styles.map} 
+      {/* MAP CODE*/}
+      <MapView
+        style={styles.map}
         region={{
           latitude: lat,
           longitude: lng,
@@ -161,12 +154,62 @@ export default function App() {
           />
         ))}
       </MapView>
+
+      {/* Existing Button*/}
       <TouchableOpacity style={styles.button} onPress={handlePress}>
         <Icon name="plussquare" size={50} color="black" />
       </TouchableOpacity>
-      <Modal visible={createSaleModal} animationType='slide' onRequestClose={() => { setCreateSaleModal(false) }}>
+
+      {/* Calculator Button */}
+      <View style={styles.calcButtonContainer}>
+        <TouchableOpacity style={styles.calcButton} onPress={() => setCalcVisible(true)}>
+          <Text style={styles.calcButtonText}>{t("CalculatorName")}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Calculator Modal with a functional calculator */}
+      <Modal
+        visible={calcVisible}
+        animationType="slide"
+        onRequestClose={() => setCalcVisible(false)}
+      >
+        <View style={styles.calcModalContainer}>
+          <Text style={{ fontSize: 24, marginBottom: 20 }}>{t("CalculatorName")}</Text>
+
+          {/* Calculator UI */}
+          <TextInput
+            style={{
+              width: "80%",
+              height: 40,
+              borderColor: "gray",
+              borderWidth: 1,
+              marginBottom: 10,
+              paddingHorizontal: 8,
+            }}
+            placeholder="Type an expression (e.g. 3+4*2)"
+            value={calcExpression}
+            onChangeText={setCalcExpression}
+          />
+
+          <TouchableOpacity style={styles.calcButton} onPress={handleCalculate}>
+            <Text style={styles.calcButtonText}>{t("CalculatorCalculate")}</Text>
+          </TouchableOpacity>
+
+          <Text style={{ fontSize: 18, marginTop: 10 }}>{t("CalculatorResults")}: {calcResult}</Text>
+
+          <TouchableOpacity
+            style={[styles.calcButton, { marginTop: 20 }]}
+            onPress={() => setCalcVisible(false)}
+          >
+            <Text style={styles.calcButtonText}>{t("CloseCalculator")}</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
+      {/* Existing Sale Creation Modal (unchanged) */}
+      <Modal visible={createSaleModal} animationType='slide' onRequestClose={() => { setCreateSaleModal(false); }}>
         <View>
-          <TouchableOpacity className={`${defaultStyle.button} bg-red-600`} onPress={ resetCreateSale }>
+          <TouchableOpacity className={`${defaultStyle.button} bg-red-600`} onPress={resetCreateSale}>
             <Text className={`${defaultStyle.buttonText}`}>
               Cancel
             </Text>
@@ -176,7 +219,7 @@ export default function App() {
             <Text className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
               Sale Name
             </Text>
-            <TextInput 
+            <TextInput
               className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
               placeholder="Enter the name of your sale"
               placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
@@ -196,7 +239,7 @@ export default function App() {
               <Text className={`${defaultStyle.text}`}>
                 Street Address
               </Text>
-              <TextInput 
+              <TextInput
                 className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
                 autoCapitalize="none"
                 keyboardType="default"
@@ -209,7 +252,7 @@ export default function App() {
               <Text className={`${defaultStyle.text}`}>
                 Apt/Suite
               </Text>
-              <TextInput 
+              <TextInput
                 className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
                 autoCapitalize="none"
                 keyboardType="default"
@@ -222,7 +265,7 @@ export default function App() {
               <Text className={`${defaultStyle.text}`}>
                 City
               </Text>
-              <TextInput 
+              <TextInput
                 className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
                 autoCapitalize="none"
                 keyboardType="default"
@@ -235,8 +278,7 @@ export default function App() {
               <Text className={`${defaultStyle.text}`}>
                 State
               </Text>
-              {/* TODO: Turn this into a dropdown menu */}
-              <TextInput 
+              <TextInput
                 className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
                 autoCapitalize="none"
                 keyboardType="default"
@@ -249,7 +291,7 @@ export default function App() {
               <Text className={`${defaultStyle.text}`}>
                 ZipCode
               </Text>
-              <TextInput 
+              <TextInput
                 className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
                 autoCapitalize="none"
                 keyboardType="default"
@@ -259,14 +301,12 @@ export default function App() {
             </View>
           </View>
           <View>
-            {/* Date Stuff */}
-            {/* TODO: Allow users to actually input multiple dates */}
+            {/* Start Dates */}
             <View>
-              {/* Start Dates */}
               <Text className={`${defaultStyle.text}`}>
                 Start Dates
               </Text>
-              <TextInput 
+              <TextInput
                 className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
                 autoCapitalize="none"
                 keyboardType="default"
@@ -274,12 +314,12 @@ export default function App() {
                 value={startDate}
               />
             </View>
+            {/* End Dates */}
             <View>
-              {/* End Dates */}
               <Text className={`${defaultStyle.text}`}>
                 End Dates
               </Text>
-              <TextInput 
+              <TextInput
                 className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
                 autoCapitalize="none"
                 keyboardType="default"
@@ -293,7 +333,7 @@ export default function App() {
             <Text className={`${defaultStyle.text}`}>
               Details
             </Text>
-            <TextInput 
+            <TextInput
               className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
               autoCapitalize="none"
               keyboardType="default"
@@ -308,8 +348,7 @@ export default function App() {
             <Text className={`${defaultStyle.text}`}>
               Sale Type
             </Text>
-            {/* TODO: Make this a drop down menu */}
-            <TextInput 
+            <TextInput
               className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
               autoCapitalize="none"
               keyboardType="default"
@@ -324,7 +363,7 @@ export default function App() {
             <Text className={`${defaultStyle.text}`}>
               Other places this sale can be found
             </Text>
-            <TextInput 
+            <TextInput
               className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
               autoCapitalize="none"
               keyboardType="default"
@@ -345,6 +384,7 @@ export default function App() {
   );
 }
 
+// Keep the map styles unmodified for the existing map
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -359,14 +399,38 @@ const styles = StyleSheet.create({
     right: 350,
     padding: 5,
     borderRadius: 5,
-    zIndex: 1, // Ensures the button stays above the map
+    zIndex: 1, // Ensures the create button stays above the map
   },
   buttonText: {
     color: 'white',
     fontSize: 16,
   },
-});
 
+  // Calculator button & modal styling
+  calcButtonContainer: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    zIndex: 9999,
+  },
+  calcButton: {
+    backgroundColor: '#ddd',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  calcButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  calcModalContainer: {
+    flex: 1,
+    backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
 
 const sales = [
   {
@@ -390,11 +454,11 @@ const sales = [
     startDate: new Date(2025,3,8,8,0,0),
     endDate: new Date(2025,3,8,20,0,0)
   },
-  { // 32.523263, -92.641027
+  {
     latlng : {latitude: 32.523263, longitude: -92.641027},
     title: "BIG ESTATE SALE",
     desc: "",
     startDate: new Date(2025,5,4,10,0,0),
     endDate: new Date(2025,5,4,18,0,0)
   }
-]
+];
