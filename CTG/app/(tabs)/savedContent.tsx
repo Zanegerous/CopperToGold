@@ -34,7 +34,6 @@ export default function SavedContent() {
 
             const savedSnapshot = snapshot.val();
             const savedSet: EbayItem[] = [];
-
             for (let item in savedSnapshot) {
                 const data = savedSnapshot[item];
 
