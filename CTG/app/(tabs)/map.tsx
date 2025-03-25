@@ -22,6 +22,8 @@ export default function App() {
   // Default to Ruston if permission denied
   const [lat, setLat] = useState(32.523205);
   const [lng, setLng] = useState(-92.637924);
+  const [itemLat, setItemLat] = useState<number>(0);
+  const [itemLng, setItemLng] = useState<number>(0);
 
   const latDelta = 0.00922
   const lngDelta = 0.00421
@@ -55,7 +57,7 @@ export default function App() {
 
   ///// Sale Creation Stuff /////
 
-  interface SaleObject {
+  interface SaleDBObject {
     title: string;
     type: string;
     address: {
@@ -63,8 +65,20 @@ export default function App() {
         secondaryAddress: string,
         city: string,
         state: string,
-        zip_code: string
+        zipCode: string
     };
+    dates: {startDates: string[], endDates: string[]};
+    details: string;
+    website: string;
+    creator: string | undefined;
+    id: string;
+  }
+
+  interface SaleMapObject {
+    title: string;
+    type: string;
+    address: string;
+    latlong: {latitude: number, longitude: number};
     dates: {startDates: string[], endDates: string[]};
     details: string;
     website: string;
@@ -93,7 +107,8 @@ export default function App() {
   const [website, setWebsite] = useState("");
 
   /// Adding and retrieving from DB ///
-  const [savedList, setSavedList] = useState<SaleObject[]>([]);
+  const [savedMapList, setSavedMapList] = useState<SaleMapObject[]>([]);
+  const [mapItem, setMapItem] = useState<SaleMapObject>();
   const auth = getAuth();
   const [user, setUser] = useState<User | null>(auth.currentUser);
   const [userUID, setUserUID] = useState<string | undefined>(user?.uid);
@@ -111,46 +126,86 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribe = onValue(saveRef, async (snapshot) => { // This creates a mounting point to listen to the savedItems position for updates.
+      console.log("RELOAD PAGE CALLED, savedMapList =" + savedMapList);
       const savedSnapshot = snapshot.val();
-      const savedSet: SaleObject[] = [];
+      const savedSet: SaleMapObject[] = [];
+      console.log("DATA GRABBED, beginning processing");
       for (let item in savedSnapshot) {
         const data = savedSnapshot[item];
-        savedSet.push({
-          title: data.title,
-          type: data.type,
-          id: data.id,
-          address: data.address,
-          dates: data.dates,
-          details: data.details,
-          website: data.website,
-          creator: data.creator
-        });
+        
+        // after we grab the item, figure out the lat/long of it, then 
+        let locationAddress = data.address.streetAddress;
+        locationAddress += ", " + data.address.city;
+        locationAddress += ", " + data.address.state;
+        (async () => {
+          try {
+            let geocode = await Location.geocodeAsync(locationAddress);
+            setMapItem({
+              title: data.title,
+              type: data.type,
+              id: data.id,
+              address: locationAddress + " " + data.address.zip_code,
+              latlong: {
+                latitude: geocode[0].latitude,
+                longitude: geocode[0].longitude
+              },
+              dates: data.dates,
+              details: data.details,
+              website: data.website,
+              creator: data.creator
+            });
+            console.log("LATLONG DETERMINED FOR A LOCATION, LOCATION SHOULD BE PUSHED TO SET");
+          } catch (error) {
+            console.error("Geocoding error:", error);
+            savedSet.push({
+              title: data.title,
+              type: data.type,
+              id: data.id,
+              address: locationAddress + " " + data.address.zip_code,
+              latlong: {
+                latitude: 32.523205,
+                longitude: -92.637924
+              },
+              dates: data.dates,
+              details: data.details,
+              website: data.website,
+              creator: data.creator
+            });
+            console.log("LATLONG COULD NOT BE DETERMINED FOR A LOCATION, LOCATION SET TO DEFAULT AND PUSHED TO SET");
+          }
+        })();
       }
-      setSavedList(savedSet);
+      // setSavedMapList(savedSet);
+      console.log("SET SAVED TO MAP LIST, SHOULD NOW BE RENDERING");
       resetCreateSale();
     });
     return () => unsubscribe(); // This unmounts the listener when moving between pages
-  }, []);
+  }, [userUID]);
 
   useEffect(() => {
-    // when saved list changes (i.e., if a new sale is added) print it
-    console.log(savedList)
-  }, [savedList])
-
-  const parseDesc = (desc : string, startDate : Date, endDate : Date) => {
-    // let returnStr : string = desc + "\n"
-    let stDateDMY = startDate.toLocaleDateString("en-US")
-    let stDateHMS = new Intl.DateTimeFormat("en-US", {timeStyle: "short"}).format(startDate)
-    let returnStr = stDateDMY + " at " + stDateHMS;
-    // let endDateDMY = endDate.toLocaleDateString("en-US")
-    // let endDateHMS = new Intl.DateTimeFormat("en-US", {timeStyle: "short"}).format(endDate)
-    // returnStr += "End: " + endDateDMY + " at " + endDateHMS;
-    return returnStr
-  }
+    if (mapItem != undefined){
+      let notDupe = true;
+      for (const loc of savedMapList) {
+        if(loc.id === mapItem.id){
+          notDupe = false;
+          break;
+        }
+      }
+      if(notDupe){
+        let currItems = savedMapList;
+        currItems.push(mapItem);
+        console.log("ITEM SAVED TO MAP LIST, SHOULD NOW BE RENDERING");
+        setSavedMapList(currItems);
+      } else {
+        console.log("ITEM AlREADY IN MAP, NOT RERENDERING");
+      }
+    }
+  }, [mapItem]);
 
   const handlePress = () => {
     // Handle button press
     console.log('Create Button pressed!');
+    console.log(savedMapList);
     setCreateSaleModal(true);
   };
 
@@ -159,7 +214,7 @@ export default function App() {
     debugLog()
     let requiredFilledOut = checkReqFilled()
     if(requiredFilledOut){
-      let saleItem: SaleObject = {
+      let saleItem: SaleDBObject = {
         title: saleName,
         type: saleType,
         address: {
@@ -167,7 +222,7 @@ export default function App() {
           secondaryAddress: secondaryStreetAddress,
           city: city,
           state: stateUS,
-          zip_code: zipCode
+          zipCode: zipCode
         },
         dates: {
           startDates: [startDate],
@@ -180,11 +235,12 @@ export default function App() {
       }
       saveSale(saleItem);
       setCreateSaleModal(false);
+      console.log(savedMapList);
     }
     else{ console.log("Error: reqs not filled out") }
   };
 
-  const saveSale = async (item: SaleObject) => {
+  const saveSale = async (item: SaleDBObject) => {
     item.id = `${item.title}_${Date.now()}`
     const saveRef = `sales/${item.id}`
     const itemRef = dbRef(database, saveRef);
@@ -296,12 +352,11 @@ export default function App() {
         showsUserLocation={true}
         showsMyLocationButton={true}
       >
-        {sales.map((marker, index) => (
+        {savedMapList.map((marker, index) => (
           <Marker
             key={index}
-            coordinate={marker.latlng}
+            coordinate={marker.latlong}
             title={marker.title}
-            description={parseDesc(marker.desc, marker.startDate, marker.endDate)}
           />
         ))}
       </MapView>
@@ -536,18 +591,6 @@ const sales = [
     startDate: new Date(2025,3,1,10,0,0),
     endDate: new Date(2025,3,2,16,0,0)
   },
-  {
-    latlng : {latitude: 32.521495, longitude: -92.646795},
-    title: "Grandma Estate Sale",
-    desc: "My grandma died and we're trying to clean out her house.",
-    startDate: new Date(2025,3,8,8,0,0),
-    endDate: new Date(2025,3,8,20,0,0)
-  },
-  { // 32.523263, -92.641027
-    latlng : {latitude: 32.523263, longitude: -92.641027},
-    title: "BIG ESTATE SALE",
-    desc: "",
-    startDate: new Date(2025,5,4,10,0,0),
-    endDate: new Date(2025,5,4,18,0,0)
-  }
 ]
+
+// 602 W California Ave
