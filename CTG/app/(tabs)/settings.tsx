@@ -101,15 +101,15 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? "#000" : "#fff" }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? "#000" : "#003" }]}>
       {/* Title */}
-      <Text style={[styles.title, { color: isDarkMode ? "#fff" : "#000", fontSize: 18 * fontScale }]}>
+      <Text style={[styles.title, { color: isDarkMode ? "#fff" : "#ddd", fontSize: 18 * fontScale }]}>
         {i18n.t("settingsTitle")}
       </Text>
 
       {/* Dark Mode Switch */}
       <View style={styles.switchContainer}>
-        <Text style={{ color: isDarkMode ? "#fff" : "#000", fontSize: 16 * fontScale }}>
+        <Text style={{ color: isDarkMode ? "#fff" : "#ddd", fontSize: 16 * fontScale }}>
           {i18n.t("darkMode")}
         </Text>
         <Switch
@@ -124,7 +124,7 @@ const Settings: React.FC = () => {
       <View style={styles.switchContainer}>
         <Text
           style={{
-            color: isDarkMode ? "#fff" : "#000",
+            color: isDarkMode ? "#fff" : "#ddd",
             fontSize: 16 * fontScale,
           }}
         >
@@ -140,7 +140,7 @@ const Settings: React.FC = () => {
 
       {/* Text Size Picker */}
       <View style={[styles.pickerContainer, { marginBottom: 35 }]}>
-        <Text style={{ color: isDarkMode ? "#fff" : "#000", fontSize: 16 * fontScale, marginBottom: 8 }}>
+        <Text style={{ color: isDarkMode ? "#fff" : "#ddd", fontSize: 16 * fontScale, marginBottom: 8 }}>
           {i18n.t("textSize")}
         </Text>
         <DropDownPicker
@@ -162,7 +162,7 @@ const Settings: React.FC = () => {
 
       {/* Language Picker */}
       <View style={styles.pickerContainer}>
-        <Text style={{ color: isDarkMode ? "#fff" : "#000", fontSize: 16 * fontScale, marginBottom: 8, marginTop: 16 }}>
+        <Text style={{ color: isDarkMode ? "#fff" : "#ddd", fontSize: 16 * fontScale, marginBottom: 8, marginTop: 16 }}>
           {i18n.t("language")}
         </Text>
         <DropDownPicker

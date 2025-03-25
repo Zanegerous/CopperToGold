@@ -60,13 +60,11 @@ export default function LoginPage() {
 
   return (
     <SafeAreaView
-      className={`flex-1 px-4 ${isDarkMode ? "bg-black" : "bg-white"}`}
+      className={`flex-1 px-4 ${isDarkMode ? "bg-black" : "bg-blue-dark"}`}
     >
       <View className="mt-10 mb-8 items-center">
         <Text
-          className={`text-3xl font-bold ${
-            isDarkMode ? "text-white" : "text-black"
-          }`}
+          className={`text-3xl font-bold ${isDarkMode ? "#fff" : "text-white"}`}
           style={{ fontSize: scale(20) }}
         >
           Copper2Gold
