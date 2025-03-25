@@ -17,7 +17,7 @@ import { Redirect } from "expo-router";
 import WebView from "react-native-webview";
 
 import { auth } from "../firebaseconfig/firebase";
-import { Database, ref as dbRef, getDatabase, remove, set } from 'firebase/database'
+import { ref as dbRef, getDatabase, remove, set } from 'firebase/database'
 import { onAuthStateChanged, User } from "firebase/auth";
 import { useTextScale } from "../context/TextScaleContext";
 import { loginWithEbay } from "@/ebayConfig";
@@ -69,7 +69,7 @@ export default function Index() {
   // User Stuff
   const [user, setUser] = useState<User | null>(auth.currentUser);
   const [userUID, setUserUID] = useState<string | undefined>(user?.uid);
-  const [database, setDatabase] = useState<Database>(getDatabase());
+  const [database, setDatabase] = useState(getDatabase());
 
 
   // Animation
@@ -127,7 +127,6 @@ export default function Index() {
     const saveRef = `users/${userUID}/savedItems/${cleanTitle}`
     const itemRef = dbRef(database, saveRef);
 
-
     try {
       await set(itemRef, {
         title: item.title,
@@ -139,10 +138,7 @@ export default function Index() {
       console.log('saved Item: ', item.title)
     } catch (error: any) {
       console.error("Save Error: ", error);
-    } finally {
-
     }
-
   }
 
   // removing from firebase logic
@@ -342,6 +338,7 @@ export default function Index() {
 
   // logic to handle searching from the text
   const handleSearch = () => {
+    // alert(text);
     if (text === '' || text === null) {
       alert("Must Enter Search");
     } else {
@@ -543,6 +540,10 @@ export default function Index() {
             setCameraOpen={setCameraOpen}
             takePicture={takePicture}
             searchBarcodeResult={searchBarcodeResult}
+            setText={setText}
+            setLoadingSymbolState={setLoadingSymbolState}
+            handleSearchOpen={handleSearchOpen}
+
           />
 
           {/* Settings Screen */}
@@ -567,7 +568,7 @@ export default function Index() {
                     setIsImageSearchActive(false);
                     setPhotoUri(null);
                     setImageSearchResults([]);
-                    setMatchingItems(null)
+                    setMatchingItems(null);
                   }}>
                   <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
                 </TouchableOpacity>

@@ -100,13 +100,18 @@ export const searchEbay = async (query: string): Promise<EbayItem[]> => {
       } while (searchOffset < DESIRED_ITEMS);
     } catch (error: any) {
 
-      if (error.response.status == 401) {
-        console.log(" Refresh Attempt ")
-        await refreshToken(user!.uid);
-        retry = true;
-      } else {
-        console.error(error);
-        throw new Error("Failed to fetch eBay search results.");
+      if (error.response) {
+        if (error.response.status === 400) {
+          return returnItems;
+        }
+        if (error.response.status == 401) {
+          console.log(" Refresh Attempt ")
+          await refreshToken(user!.uid);
+          retry = true;
+        } else {
+          console.error(error);
+          return returnItems;
+        }
       }
 
       if (attempt == 2) {
@@ -174,13 +179,16 @@ export const searchEbayByImage = async (imageQuery: string): Promise<EbayItem[]>
 
     } catch (error: any) {
       console.error("Error fetching eBay data:", error);
-      if (error.response.status == 401) {
-        console.log(" Refresh Attempt ")
-        await refreshToken(user!.uid);
-        retry = true;
-      } else {
-        console.error(error);
-        throw new Error("Failed to fetch eBay search results."); // acts the same as a break
+
+      if (error.response) {
+        if (error.response.status == 401) {
+          console.log(" Refresh Attempt ")
+          await refreshToken(user!.uid);
+          retry = true;
+        } else {
+          console.error(error);
+          return returnItems;
+        }
       }
 
       if (attempt >= 2) {
