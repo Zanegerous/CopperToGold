@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
   // Calculator button & modal styling
   calcButtonContainer: {
     position: 'absolute',
-    top: 20,
+    top: 80,
     left: 20,
     zIndex: 9999,
   },
