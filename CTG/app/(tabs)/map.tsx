@@ -128,7 +128,6 @@ export default function App() {
     const unsubscribe = onValue(saveRef, async (snapshot) => { // This creates a mounting point to listen to the savedItems position for updates.
       console.log("RELOAD PAGE CALLED, savedMapList =" + savedMapList);
       const savedSnapshot = snapshot.val();
-      const savedSet: SaleMapObject[] = [];
       console.log("DATA GRABBED, beginning processing");
       for (let item in savedSnapshot) {
         const data = savedSnapshot[item];
@@ -137,46 +136,23 @@ export default function App() {
         let locationAddress = data.address.streetAddress;
         locationAddress += ", " + data.address.city;
         locationAddress += ", " + data.address.state;
-        (async () => {
-          try {
-            let geocode = await Location.geocodeAsync(locationAddress);
-            setMapItem({
-              title: data.title,
-              type: data.type,
-              id: data.id,
-              address: locationAddress + " " + data.address.zip_code,
-              latlong: {
-                latitude: geocode[0].latitude,
-                longitude: geocode[0].longitude
-              },
-              dates: data.dates,
-              details: data.details,
-              website: data.website,
-              creator: data.creator
-            });
-            console.log("LATLONG DETERMINED FOR A LOCATION, LOCATION SHOULD BE PUSHED TO SET");
-          } catch (error) {
-            console.error("Geocoding error:", error);
-            savedSet.push({
-              title: data.title,
-              type: data.type,
-              id: data.id,
-              address: locationAddress + " " + data.address.zip_code,
-              latlong: {
-                latitude: 32.523205,
-                longitude: -92.637924
-              },
-              dates: data.dates,
-              details: data.details,
-              website: data.website,
-              creator: data.creator
-            });
-            console.log("LATLONG COULD NOT BE DETERMINED FOR A LOCATION, LOCATION SET TO DEFAULT AND PUSHED TO SET");
-          }
-        })();
+        let geocode = await getLatLong(locationAddress);
+        setMapItem({
+          title: data.title,
+          type: data.type,
+          id: data.id,
+          address: locationAddress + " " + data.address.zip_code,
+          latlong: {
+            latitude: geocode.lat,
+            longitude: geocode.long
+          },
+          dates: data.dates,
+          details: data.details,
+          website: data.website,
+          creator: data.creator
+        });
+        console.log("LOCATION SHOULD BE PUSHED TO SET");
       }
-      // setSavedMapList(savedSet);
-      console.log("SET SAVED TO MAP LIST, SHOULD NOW BE RENDERING");
       resetCreateSale();
     });
     return () => unsubscribe(); // This unmounts the listener when moving between pages
@@ -201,6 +177,23 @@ export default function App() {
       }
     }
   }, [mapItem]);
+
+  const getLatLong = (async (address:string) => {
+    let lat;
+    let long;
+    try {
+      let geocode = await Location.geocodeAsync(address);
+      lat = geocode[0].latitude;
+      long = geocode[0].longitude;
+      console.log("LATLONG DETERMINED FOR A LOCATION");
+    } catch (error) {
+      console.error("Geocoding error:", error);
+      lat = 32.523205;
+      long = -92.637924;
+      console.log("LATLONG COULD NOE BE DETERMINED FOR A LOCATION, DEFAULTING");
+    }
+    return({lat, long});
+  })
 
   const handlePress = () => {
     // Handle button press
