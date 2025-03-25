@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, View, Text, TextInput, Modal } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, Text, TextInput, Modal, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, {Marker} from 'react-native-maps';
 import * as Location from 'expo-location';
+import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+import { getDatabase, ref as dbRef, Database, set, onValue } from "firebase/database";
 import "../../global.css";
 import defaultStyle from "../styles/defaultStyle"; // Default style
 import { useTheme } from "../context/ThemeContext"; // Used for getting if app is in light or dark mode
@@ -52,6 +54,24 @@ export default function App() {
   }, []);
 
   ///// Sale Creation Stuff /////
+
+  interface SaleObject {
+    title: string;
+    type: string;
+    address: {
+        streetAddress: string,
+        secondaryAddress: string,
+        city: string,
+        state: string,
+        zip_code: string
+    };
+    dates: {startDates: string[], endDates: string[]};
+    details: string;
+    website: string;
+    creator: string | undefined;
+    id: string;
+  }
+
   const [createSaleModal, setCreateSaleModal] = useState(false);
   const [saleName, setSaleName] = useState("");
   // Address
@@ -71,26 +91,53 @@ export default function App() {
   const [saleType, setSaleType] = useState("");
   const [details, setDetails] = useState("");
   const [website, setWebsite] = useState("");
-  /* 
-    interface SaleObject {
-    title: string;
-    type: string;
-    address: {
-        primary_line: string,
-        secondary_line: string,
-        city: string,
-        state: string,
-        zip_code: string
-    };
-    dates: {startDates: [], endDates: []};
-    details: string;
-    website: string;
-    creator: string;
-    id: string;
-    */
 
+  /// Adding and retrieving from DB ///
+  const [savedList, setSavedList] = useState<SaleObject[]>([]);
+  const auth = getAuth();
+  const [user, setUser] = useState<User | null>(auth.currentUser);
+  const [userUID, setUserUID] = useState<string | undefined>(user?.uid);
+  const [database, setDatabase] = useState<Database>(getDatabase());
+  const saveRef = dbRef(database, "sales/");
 
-  let parseDesc = (desc : string, startDate : Date, endDate : Date) => {
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setUserUID(user?.uid);
+      setDatabase(getDatabase());
+    });
+    return () => unsubscribe();
+  }, [user]);
+
+  useEffect(() => {
+    const unsubscribe = onValue(saveRef, async (snapshot) => { // This creates a mounting point to listen to the savedItems position for updates.
+      const savedSnapshot = snapshot.val();
+      const savedSet: SaleObject[] = [];
+      for (let item in savedSnapshot) {
+        const data = savedSnapshot[item];
+        savedSet.push({
+          title: data.title,
+          type: data.type,
+          id: data.id,
+          address: data.address,
+          dates: data.dates,
+          details: data.details,
+          website: data.website,
+          creator: data.creator
+        });
+      }
+      setSavedList(savedSet);
+      resetCreateSale();
+    });
+    return () => unsubscribe(); // This unmounts the listener when moving between pages
+  }, []);
+
+  useEffect(() => {
+    // when saved list changes (i.e., if a new sale is added) print it
+    console.log(savedList)
+  }, [savedList])
+
+  const parseDesc = (desc : string, startDate : Date, endDate : Date) => {
     // let returnStr : string = desc + "\n"
     let stDateDMY = startDate.toLocaleDateString("en-US")
     let stDateHMS = new Intl.DateTimeFormat("en-US", {timeStyle: "short"}).format(startDate)
@@ -109,6 +156,56 @@ export default function App() {
 
   const handleSubmit = () => {
     // Handle button press
+    debugLog()
+    let requiredFilledOut = checkReqFilled()
+    if(requiredFilledOut){
+      let saleItem: SaleObject = {
+        title: saleName,
+        type: saleType,
+        address: {
+          streetAddress: streetAddress,
+          secondaryAddress: secondaryStreetAddress,
+          city: city,
+          state: stateUS,
+          zip_code: zipCode
+        },
+        dates: {
+          startDates: [startDate],
+          endDates: [endDate]
+        },
+        details: details,
+        website: website,
+        creator: userUID,
+        id: ''
+      }
+      saveSale(saleItem);
+      setCreateSaleModal(false);
+    }
+    else{ console.log("Error: reqs not filled out") }
+  };
+
+  const saveSale = async (item: SaleObject) => {
+    item.id = `${item.title}_${Date.now()}`
+    const saveRef = `sales/${item.id}`
+    const itemRef = dbRef(database, saveRef);
+    try {
+      await set(itemRef, {
+        title: item.title,
+        type: item.type,
+        address: item.address,
+        dates: item.dates,
+        details: item.details,
+        website: item.website,
+        creator: item.creator,
+        id: item.id
+      });
+      console.log('Saved Sale: ', item.title)
+    } catch (error: any) {
+      console.error("Save Error: ", error);
+    }
+  }
+
+  const debugLog = () => {
     console.log('Submit Button pressed!');
     console.log("Sale Name = " + saleName);
     console.log('Address Info');
@@ -122,12 +219,59 @@ export default function App() {
     console.log("\tEnd Date = " + endDate);
     console.log("Details = " + details);
     console.log("Website = " + website);
-    resetCreateSale()
-  };
+  }
+
+  // This may be the ugliest function of all time
+  const checkReqFilled = () => {
+    let reqFilled = true;
+    let valsMissing : string[] = [];
+    if(saleName == '') {
+      reqFilled = false
+      valsMissing.push('Sale Name');
+    }
+    if(saleType == '') {
+      reqFilled = false
+      valsMissing.push('Sale Type');
+    }
+    if(streetAddress == '') {
+      reqFilled = false
+      valsMissing.push('Street Address');
+    }
+    if(city == '') {
+      reqFilled = false
+      valsMissing.push('City');
+    }
+    if(stateUS == '') {
+      reqFilled = false
+      valsMissing.push('State');
+    }
+    if(zipCode == '') {
+      reqFilled = false
+      valsMissing.push('Zip Code');
+    }
+    if(startDate == '') {
+      reqFilled = false
+      valsMissing.push('Start Date of Sale');
+    }
+    if(endDate == '') {
+      reqFilled = false
+      valsMissing.push('End Date of Sale');
+    }
+    if(reqFilled == false){
+      let missingStr = "You cannot submit this sale without the following data:\n"
+      for(let val of valsMissing){
+        missingStr += val + ", "
+      }
+      let finalStr = missingStr.slice(0, -2); // remove the ", " on the end of the last item.
+      Alert.alert("Error: Missing Data", finalStr);
+      console.error("Error: Missing Data\n" + finalStr);
+    }
+    return(reqFilled);
+  }
 
   const resetCreateSale = () => {
-    setCreateSaleModal(false);
     setSaleName('');
+    setSaleType('');
     setStreetAddress('');
     setSecondaryStreetAddress('');
     setCity('');
@@ -166,7 +310,10 @@ export default function App() {
       </TouchableOpacity>
       <Modal visible={createSaleModal} animationType='slide' onRequestClose={() => { setCreateSaleModal(false) }}>
         <View>
-          <TouchableOpacity className={`${defaultStyle.button} bg-red-600`} onPress={ resetCreateSale }>
+          <TouchableOpacity className={`${defaultStyle.button} bg-red-600`} onPress={ () => { 
+            setCreateSaleModal(false)
+            resetCreateSale()
+          }}>
             <Text className={`${defaultStyle.buttonText}`}>
               Cancel
             </Text>
@@ -247,7 +394,7 @@ export default function App() {
             {/* Zip Code */}
             <View>
               <Text className={`${defaultStyle.text}`}>
-                ZipCode
+                Zip Code
               </Text>
               <TextInput 
                 className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
@@ -260,6 +407,9 @@ export default function App() {
           </View>
           <View>
             {/* Date Stuff */}
+            <Text className={`${defaultStyle.text} text-center`}>
+              Date Information
+            </Text>
             {/* TODO: Allow users to actually input multiple dates */}
             <View>
               {/* Start Dates */}
@@ -287,6 +437,9 @@ export default function App() {
                 value={endDate}
               />
             </View>
+          <Text className={`${defaultStyle.text} text-center`}>
+            Other Information
+          </Text>
           </View>
           {/* Details */}
           <View>
