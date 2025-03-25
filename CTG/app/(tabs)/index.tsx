@@ -15,7 +15,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useTheme } from "../context/ThemeContext";
 import { Redirect } from "expo-router";
 import WebView from "react-native-webview";
-
+import { useTranslation } from "react-i18next";
 import { auth } from "../firebaseconfig/firebase";
 import { Database, ref as dbRef, getDatabase, remove, set } from 'firebase/database'
 import { onAuthStateChanged, User } from "firebase/auth";
@@ -86,6 +86,7 @@ export default function Index() {
   const { fontScale } = useTextScale();
   const { isDarkMode } = useTheme();  // For accessing dark mode
   const scale = (baseSize: number) => baseSize * fontScale;
+  const { t } = useTranslation();
 
 
 
@@ -115,7 +116,7 @@ export default function Index() {
   if (!permission.granted) {
     return (
       <View className="flex-1">
-        <Text className="bg-black text-white rounded-md text-center text-2xl top-5 w-8/12" style={{ fontSize: scale(24) }}>We need your permission to show the camera</Text>
+        <Text className="bg-black text-white rounded-md text-center text-2xl top-5 w-8/12" style={{ fontSize: scale(24) }}>{t("CameraPermissionAlert")}</Text>
         <Button onPress={requestPermission} title="grant permission" />
       </View>
     );
@@ -183,8 +184,8 @@ export default function Index() {
             resizeMode='contain'
           />
           <Text className="text-center color-blue-900 font-semibold m-2 rounded-lg bg-zinc-400 text-sm">{item.title}</Text>
-          <Text className="text-left text-l ml-1 text-white">Listed Price: ${item.price.value}</Text>
-          <Text className="text-left ml-1 text-white">Condition: {item.condition}</Text>
+          <Text className="text-left text-l ml-1 text-white">{t("PriceListed")}: ${item.price.value}</Text>
+          <Text className="text-left ml-1 text-white">{t("ItemConditioning")}: {item.condition}</Text>
         </TouchableOpacity>
 
         {/* Zoom up modal */}
@@ -220,16 +221,16 @@ export default function Index() {
               className="w-11/12 h-1/2 m-1 rounded-lg self-center bg-slate-600"
               resizeMode='contain'
             />
-            <Text className={"text-left text-3xl ml-4 mt-6" + textSettings}>Listing Price: ${item.price.value}</Text>
-            <Text className={"text-left text-3xl ml-4" + textSettings}>Condition: {item.condition}</Text>
+            <Text className={"text-left text-3xl ml-4 mt-6" + textSettings}>{t("PriceListing")}: ${item.price.value}</Text>
+            <Text className={"text-left text-3xl ml-4" + textSettings}>{t("ItemConditioning")}: {item.condition}</Text>
 
 
             <View className="flex-row absolute bottom-2 justify-center content-center w-full">
               <TouchableOpacity onPress={() => setSoldPageModal(true)} className="bg-orange-400 rounded-lg border-2 border-black justify-center w-2/5 self-center h-16" >
-                <Text className={"text-center text-2xl justify-center" + textSettings}>See Sold Items</Text>
+                <Text className={"text-center text-2xl justify-center" + textSettings}>{t("")}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => { setText(item.title); handleSearch(); setResultModal(false) }} className="bg-orange-400 m-2 rounded-lg border-2 border-black w-1/2 justify-center self-center h-16" >
-                <Text className={"text-center text-2xl" + textSettings}>Search This Item</Text>
+                <Text className={"text-center text-2xl" + textSettings}>{t("SearchThisItem")}</Text>
               </TouchableOpacity>
             </View>
 
@@ -465,7 +466,7 @@ export default function Index() {
                     style={{ width: animatedWidth, top: animatedYPos }}
                   >
                     <TextInput
-                      placeholder="Enter Here"
+                      placeholder= {t("SearchEnterBox")}
                       value={text}
                       onChangeText={setText}
                       onFocus={() => setSearchFocused(true)}
@@ -519,7 +520,7 @@ export default function Index() {
                   onPress={handleSearchOpen}
                 >
                   <Text style={{ fontSize: scale(16) }} className="text-gray-600">
-                    Search
+                    {t("HomeSearchBox")}
                   </Text>
                 </TouchableOpacity>
 
@@ -530,7 +531,7 @@ export default function Index() {
                   }}
                 >
                   <Text style={{ fontSize: scale(16) }} className="text-gray-600">
-                    Open Camera
+                    {t("CameraBox")}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -573,15 +574,15 @@ export default function Index() {
                 </TouchableOpacity>
 
                 <Text className="self-center text-white font-bold text-2xl  ">
-                  {"\t"}Avg Price: ${getAvgPrice(matchingItems ? matchingItems : searchResults)} {"\n"}
-                  {"\t"}Item's Found: {(matchingItems ? matchingItems : searchResults)?.length}
+                  {"\t"}{t("AveragePrice")}: ${getAvgPrice(matchingItems ? matchingItems : searchResults)} {"\n"}
+                  {"\t"}{t("FoundItems")}: {(matchingItems ? matchingItems : searchResults)?.length}
                 </Text>
 
               </View>
 
               <View className=" w-5/6 self-center relative mt-0 flex-row">
                 <TextInput
-                  placeholder="Enter Here"
+                  placeholder={t("SearchEnterBox")}
                   value={text}
                   onChangeText={setText}
                   onFocus={() => setSearchFocused(true)}
@@ -639,7 +640,7 @@ export default function Index() {
                 ) : (
                   <View className="bg-white text-2xl w-10/12 self-center">
                     <Text style={{ fontSize: scale(24), textAlign: "center" }}>
-                      No Items Found
+                      {t("SearchItemsFound")}
                     </Text>
                   </View>
                 )}
@@ -651,7 +652,7 @@ export default function Index() {
                     setSearchWebViewState(true);
                   }}
                   className="self-center bg-orange py-2 px-8 rounded-xl">
-                  <Text className="text-white text-xl">View Sold On Web</Text>
+                  <Text className="text-white text-xl">{t("HomeSoldOnWebView")}</Text>
                 </TouchableOpacity>
               </View>
             </SafeAreaView>

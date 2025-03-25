@@ -8,8 +8,10 @@ import { FirebaseError } from "firebase/app";
 import { useRouter } from "expo-router";
 import { useTextScale } from "../context/TextScaleContext";
 import Icon from "react-native-vector-icons/FontAwesome";
+import { useTranslation } from "react-i18next";
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const { fontScale } = useTextScale();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -52,94 +54,79 @@ export default function RegisterPage() {
           className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-black"}`}
           style={{ fontSize: scale(20) }}
         >
-          Registration Page
+          {t("RegistrationPage")}
         </Text>
       </View>
+      {/* Email Field */}
       <View className="flex-1 items-center">
-        {/* Email Field */}
-        <View className="w-full mb-4">
-          <Text
-            className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
-            style={{ fontSize: scale(20) }}
-          >
-            Email ID
-          </Text>
-          <TextInput
-            className={`border rounded px-3 py-2 ${
-              isDarkMode ? "border-gray-500 text-white" : "border-gray-300"
-            }`}
-            placeholder="Enter your email"
-            placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            onChangeText={setEmail}
-            value={email}
-            style={{ fontSize: scale(20) }}
-          />
-        </View>
+              <View className="w-full mb-4">
+                <Text className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`} style={{ fontSize: scale(20) }}>
+                  {t("EmailID")}
+                </Text>
+                <TextInput
+                  className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
+                  placeholder={t("EmailBox")}
+                  placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  onChangeText={setEmail}
+                  value={email}
+                  style={{ fontSize: scale(20) }}
+                />
+              </View>
         {/* Password Field */}
         <View className="w-full mb-2">
-          <Text
-            className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
-            style={{ fontSize: scale(20) }}
-          >
-            Password
-          </Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              className={`border rounded px-3 py-2 ${
-                isDarkMode ? "border-gray-500 text-white" : "border-gray-300"
-              }`}
-              placeholder="Enter your password"
-              placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
-              secureTextEntry={!passwordVisible}
-              onChangeText={setPassword}
-              value={password}
-              style={[styles.textInput, { fontSize: scale(20) }]}
-            />
-            <TouchableOpacity
-              onPress={() => setPasswordVisible(!passwordVisible)}
-              style={styles.eyeIcon}
-            >
-              <Icon
-                name={passwordVisible ? "eye" : "eye-slash"}
-                size={scale(20)}
-                color={isDarkMode ? "#fff" : "#000"}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
+                  <Text className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`} style={{ fontSize: scale(20) }}>
+                    {t("Password")}
+                  </Text>
+                  <View style={styles.inputContainer}>
+                    <TextInput
+                      className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
+                      placeholder={t("PasswordBox")}
+                      placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
+                      secureTextEntry={!passwordVisible}
+                      onChangeText={setPassword}
+                      value={password}
+                      style={[styles.textInput, { fontSize: scale(20) }]}
+                    />
+                    <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)} style={styles.eyeIcon}>
+                      <Icon name={passwordVisible ? "eye" : "eye-slash"} size={scale(20)} color={isDarkMode ? "#fff" : "#000"} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
         {/* Security Question */}
         <View className="w-full mb-4">
           <Text
-            className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
+            className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`} style={{ fontSize: scale(20)}}
           >
-            Security Question
+            {t("SecurityQuestion")}
           </Text>
           <TextInput
             className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"
               }`}
-            placeholder="Enter your security question."
+            placeholder={t("SecurityQuestionBox")}
             placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
             autoCapitalize="none"
             onChangeText={setSecQuestion}
             value={secQuestion}
+            style={[styles.textInput, {fontSize: scale(20)}]}
           />
         </View>
         <View className="w-full mb-4">
           <Text
-            className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
+            className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`} style={{ fontSize: scale(20)}}
           >
-            Security Answer
+            {t("SecurityAnswer")}
           </Text>
           <TextInput
             className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"
               }`}
-            placeholder="Enter your answer to your security question"
+            placeholder={t("SecurityAnswerBox")}
             placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
             autoCapitalize="none"
             onChangeText={setSecAnswer}
             value={secAnswer}
+            style={[styles.textInput, {fontSize: scale(20)}]}
           />
         </View>
         <TouchableOpacity
@@ -147,7 +134,7 @@ export default function RegisterPage() {
           className="bg-green-500 w-full rounded py-3"
         >
           <Text className="text-center text-white text-lg" style={{ fontSize: scale(20) }} >
-            Register
+            {t("RegisterAccount")}
           </Text>
         </TouchableOpacity>
       </View>
