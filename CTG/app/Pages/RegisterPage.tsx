@@ -90,7 +90,7 @@ export default function RegisterPage() {
                       style={[styles.textInput, { fontSize: scale(20) }]}
                     />
                     <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)} style={styles.eyeIcon}>
-                      <Icon name={passwordVisible ? "eye" : "eye-slash"} size={scale(20)} color={isDarkMode ? "#fff" : "#000"} />
+                      <Icon name={passwordVisible ? "eye" : "eye-slash"} size={scale(20)} color={isDarkMode ? "#fff" : "#ddd"} />
                     </TouchableOpacity>
                   </View>
                 </View>
