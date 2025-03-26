@@ -544,6 +544,9 @@ export default function Index() {
             setCameraOpen={setCameraOpen}
             takePicture={takePicture}
             searchBarcodeResult={searchBarcodeResult}
+            setText={setText}
+            setLoadingSymbolState={setLoadingSymbolState}
+            handleSearchOpen={handleSearchOpen}
           />
 
           {/* Settings Screen */}
