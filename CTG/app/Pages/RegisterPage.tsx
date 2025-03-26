@@ -64,7 +64,7 @@ export default function RegisterPage() {
                   {t("EmailID")}
                 </Text>
                 <TextInput
-                  className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
+                  className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300 text-white"}`}
                   placeholder={t("EmailBox")}
                   placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
                   autoCapitalize="none"
@@ -81,7 +81,7 @@ export default function RegisterPage() {
                   </Text>
                   <View style={styles.inputContainer}>
                     <TextInput
-                      className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
+                      className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300 text-white"}`}
                       placeholder={t("PasswordBox")}
                       placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
                       secureTextEntry={!passwordVisible}
@@ -102,7 +102,7 @@ export default function RegisterPage() {
             {t("SecurityQuestion")}
           </Text>
           <TextInput
-            className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"
+            className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300 text-white"
               }`}
             placeholder={t("SecurityQuestionBox")}
             placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
@@ -119,7 +119,7 @@ export default function RegisterPage() {
             {t("SecurityAnswer")}
           </Text>
           <TextInput
-            className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"
+            className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300 text-white"
               }`}
             placeholder={t("SecurityAnswerBox")}
             placeholderTextColor={isDarkMode ? "#999" : "#aaa"}

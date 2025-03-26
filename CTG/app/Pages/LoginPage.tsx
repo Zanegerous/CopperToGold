@@ -65,11 +65,11 @@ export default function LoginPage() {
 
       <View className="flex-1 items-center">
         <View className="w-full mb-4">
-          <Text className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`} style={{ fontSize: scale(20) }}>
+          <Text className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-white"}`} style={{ fontSize: scale(20) }}>
             {t("EmailID")}
           </Text>
           <TextInput
-            className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
+            className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300 text-white"}`}
             placeholder={t("EmailBox")}
             placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
             autoCapitalize="none"
@@ -81,12 +81,12 @@ export default function LoginPage() {
         </View>
 
         <View className="w-full mb-2">
-          <Text className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`} style={{ fontSize: scale(20) }}>
+          <Text className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-white"}`} style={{ fontSize: scale(20) }}>
             {t("Password")}
           </Text>
           <View style={styles.inputContainer}>
             <TextInput
-              className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300"}`}
+              className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-500 text-white" : "border-gray-300 text-white"}`}
               placeholder={t("PasswordBox")}
               placeholderTextColor={isDarkMode ? "#999" : "#aaa"}
               secureTextEntry={!passwordVisible}
@@ -95,7 +95,7 @@ export default function LoginPage() {
               style={[styles.textInput, { fontSize: scale(20) }]}
             />
             <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)} style={styles.eyeIcon}>
-              <Icon name={passwordVisible ? "eye" : "eye-slash"} size={scale(20)} color={isDarkMode ? "#fff" : "#000"} />
+              <Icon name={passwordVisible ? "eye" : "eye-slash"} size={scale(20)} color={isDarkMode ? "#fff" : "#ddd"} />
             </TouchableOpacity>
           </View>
         </View>
