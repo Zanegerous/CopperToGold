@@ -6,11 +6,13 @@ import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObjec
 import { getDatabase, ref as dbRef, set } from 'firebase/database';
 import axios from 'axios';
 import { getUserID } from '@/app/functionForApp/simpleFunctions';
+import { useTranslation } from "react-i18next";
 
 
 const takePictureText = async (camera: { takePictureAsync: () => any } | null) => {
     try {
         if (camera != null) {
+            
             const apiKey = ''; // Check discord for it, will need to be moved later to backend, fine here for now, just dont push to github with it
             const photo = await camera.takePictureAsync();
             const urifetch = await fetch(photo.uri);
@@ -56,6 +58,7 @@ interface CameraModalProps {
 const CameraModal: React.FC<CameraModalProps> = ({ cameraOpen, setCameraOpen, takePicture, searchBarcodeResult, setText, setLoadingSymbolState, handleSearchOpen }) => {
     const cameraRef = useRef<any>(null);
     const { fontScale } = useTextScale();
+    const { t } = useTranslation();
     const scale = (baseSize: number) => baseSize * fontScale;
 
     return (
@@ -78,7 +81,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ cameraOpen, setCameraOpen, ta
                     onPress={() => setCameraOpen(false)}
                 >
                     <Text style={{ fontSize: scale(16), color: '#1D4ED8', textAlign: 'center' }}>
-                        Close
+                        {t("CameraModalClose")}
                     </Text>
                 </TouchableOpacity>
 
@@ -88,8 +91,8 @@ const CameraModal: React.FC<CameraModalProps> = ({ cameraOpen, setCameraOpen, ta
                     onPress={() => takePicture(cameraRef.current)}
                     style={{ borderRadius: 999, borderWidth: 8, borderColor: 'white', position: 'absolute', bottom: 80, right: 60, width: 96, height: 96, alignSelf: 'center' }}
                 >
-                    <Text className='text-white self-center text-xl mt-4 '>Search</Text>
-                    <Text className='text-white self-center text-xl'>Image</Text>
+                    <Text className='text-white self-center text-xl mt-4 '>{t("CameraModalSearch")}</Text>
+                    <Text className='text-white self-center text-xl'>{t("CameraModalImage")}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -103,8 +106,8 @@ const CameraModal: React.FC<CameraModalProps> = ({ cameraOpen, setCameraOpen, ta
                     }}
                     style={{ borderRadius: 999, borderWidth: 8, borderColor: 'blue', position: 'absolute', bottom: 80, left: 60, width: 96, height: 96, alignSelf: 'center' }}
                 >
-                    <Text className='text-white self-center text-xl mt-4'>Scan</Text>
-                    <Text className='text-white self-center text-xl'>Text</Text>
+                    <Text className='text-white self-center text-xl mt-4'>{t("CameraModalScan")}</Text>
+                    <Text className='text-white self-center text-xl'>{t("CameraModalText")}</Text>
                 </TouchableOpacity>
             </CameraView>
         </Modal>

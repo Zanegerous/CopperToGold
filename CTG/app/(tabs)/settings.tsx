@@ -8,8 +8,6 @@ import { auth } from "../firebaseconfig/firebase";
 import { useRouter } from "expo-router";
 import { useNotifSetting } from "../context/NotificationContext";
 import i18n from "../i18n";
-import { loginWithEbay } from "@/ebayConfig";
-import { getUserID } from "../functionForApp/simpleFunctions";
 
 type FontScaleOption = {
   label: string;
@@ -104,15 +102,15 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? "#000" : "#fff" }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? "#000" : "#003" }]}>
       {/* Title */}
-      <Text style={[styles.title, { color: isDarkMode ? "#fff" : "#000", fontSize: 18 * fontScale }]}>
+      <Text style={[styles.title, { color: isDarkMode ? "#fff" : "#ddd", fontSize: 18 * fontScale }]}>
         {i18n.t("settingsTitle")}
       </Text>
 
       {/* Dark Mode Switch */}
       <View style={styles.switchContainer}>
-        <Text style={{ color: isDarkMode ? "#fff" : "#000", fontSize: 16 * fontScale }}>
+        <Text style={{ color: isDarkMode ? "#fff" : "#ddd", fontSize: 16 * fontScale }}>
           {i18n.t("darkMode")}
         </Text>
         <Switch
@@ -127,11 +125,11 @@ const Settings: React.FC = () => {
       <View style={styles.switchContainer}>
         <Text
           style={{
-            color: isDarkMode ? "#fff" : "#000",
+            color: isDarkMode ? "#fff" : "#ddd",
             fontSize: 16 * fontScale,
           }}
         >
-          {i18n.t("turnNotifOff")}
+          {i18n.t("notificationsToggle")}
         </Text>
         <Switch
           value={isNotif}
@@ -143,7 +141,7 @@ const Settings: React.FC = () => {
 
       {/* Text Size Picker */}
       <View style={[styles.pickerContainer, { marginBottom: 35 }]}>
-        <Text style={{ color: isDarkMode ? "#fff" : "#000", fontSize: 16 * fontScale, marginBottom: 8 }}>
+        <Text style={{ color: isDarkMode ? "#fff" : "#ddd", fontSize: 16 * fontScale, marginBottom: 8 }}>
           {i18n.t("textSize")}
         </Text>
         <DropDownPicker
@@ -163,23 +161,9 @@ const Settings: React.FC = () => {
         />
       </View>
 
-      <View className="flex-row items-center">
-        <TouchableOpacity
-          className="bg-blue-dark-200 h-16 w-full justify-center items-center mt-2 rounded-lg"
-          onPress={() => {
-            loginWithEbay(getUserID());
-          }}
-        >
-          <Text style={{ fontSize: 16 * fontScale }} className="text-white">
-            Ebay Login
-          </Text>
-
-        </TouchableOpacity>
-      </View>
-
       {/* Language Picker */}
       <View style={styles.pickerContainer}>
-        <Text style={{ color: isDarkMode ? "#fff" : "#000", fontSize: 16 * fontScale, marginBottom: 8, marginTop: 16 }}>
+        <Text style={{ color: isDarkMode ? "#fff" : "#ddd", fontSize: 16 * fontScale, marginBottom: 8, marginTop: 16 }}>
           {i18n.t("language")}
         </Text>
         <DropDownPicker
@@ -212,8 +196,6 @@ const Settings: React.FC = () => {
           {i18n.t("deleteAccount")}
         </Text>
       </TouchableOpacity>
-
-
 
       {/* Warning Modal */}
       <Modal visible={isModalOpen} transparent={true}>
