@@ -8,6 +8,8 @@ import { auth } from "../firebaseconfig/firebase";
 import { useRouter } from "expo-router";
 import { useNotifSetting } from "../context/NotificationContext";
 import i18n from "../i18n";
+import { loginWithEbay } from "@/ebayConfig";
+import { getUserID } from "../functionForApp/simpleFunctions";
 
 type FontScaleOption = {
   label: string;
@@ -182,6 +184,17 @@ const Settings: React.FC = () => {
           placeholderStyle={{ color: isDarkMode ? "#ccc" : "#888" }}
         />
       </View>
+      <TouchableOpacity
+        className="bg-blue-light-200 h-16 w-full justify-center items-center mt-2 rounded-lg"
+        onPress={() => {
+          loginWithEbay(getUserID());
+        }}
+      >
+        <Text style={{ fontSize: 16 * fontScale }} className="text-white">
+          Ebay Login
+        </Text>
+
+      </TouchableOpacity>
 
       {/* Logout Button */}
       <TouchableOpacity style={[styles.logoutButton, { backgroundColor: "#f00" }]} onPress={handleLogout}>
