@@ -638,7 +638,7 @@ const styles = StyleSheet.create({
   button: {
     position: 'absolute',
     top: 20,
-    right: 350,
+    left: 20,
     padding: 5,
     borderRadius: 5,
     zIndex: 1, // Ensures the create button stays above the map
