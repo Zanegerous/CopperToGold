@@ -45,13 +45,13 @@ export default function RegisterPage() {
   const scale = (baseSize: number) => baseSize * fontScale;
 
   return (
-    <SafeAreaView className={`flex-1 px-4 ${isDarkMode ? "bg-black" : "bg-white"}`}>
+    <SafeAreaView className={`flex-1 px-4 ${isDarkMode ? "bg-black" : "bg-blue-dark"}`}>
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Text style={styles.backButtonText}>{"<"} Back</Text>
       </TouchableOpacity>
       <View className="mt-10 mb-8 items-center">
         <Text
-          className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-black"}`}
+          className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-white"}`}
           style={{ fontSize: scale(20) }}
         >
           {t("RegistrationPage")}
@@ -146,10 +146,11 @@ const styles = StyleSheet.create({
   backButton: {
     position: "absolute",
     left: 6,
+    top: 60,
     backgroundColor: "#ccc",
     paddingVertical: 6,
     paddingHorizontal: 10,
-    borderRadius: 5,
+    borderRadius: 15,
   },
   backButtonText: {
     fontSize: 16,

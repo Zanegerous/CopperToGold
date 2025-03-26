@@ -51,9 +51,14 @@ export default function LoginPage() {
   const scale = (baseSize: number) => baseSize * fontScale;
 
   return (
-    <SafeAreaView className={`flex-1 px-4 ${isDarkMode ? "bg-black" : "bg-white"}`}>
+    <SafeAreaView
+      className={`flex-1 px-4 ${isDarkMode ? "bg-black" : "bg-blue-dark"}`}
+    >
       <View className="mt-10 mb-8 items-center">
-        <Text className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-black"}`} style={{ fontSize: scale(20) }}>
+        <Text
+          className={`text-3xl font-bold ${isDarkMode ? "#fff" : "text-white"}`}
+          style={{ fontSize: scale(20) }}
+        >
           {t("ApplicationLogoName")}
         </Text>
       </View>
