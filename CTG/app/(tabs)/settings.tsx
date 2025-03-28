@@ -191,7 +191,7 @@ const Settings: React.FC = () => {
         }}
       >
         <Text style={{ fontSize: 16 * fontScale }} className="text-white">
-          Ebay Login
+          {i18n.t("SettingsEbayLogin")}
         </Text>
 
       </TouchableOpacity>
