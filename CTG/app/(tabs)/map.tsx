@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, TouchableOpacity, View, KeyboardAvoidingView, ScrollView, Text, TextInput, Modal, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import DropDownPicker from 'react-native-dropdown-picker';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
@@ -92,8 +93,11 @@ export default function App() {
   const [streetAddress, setStreetAddress] = useState("");
   const [secondaryStreetAddress, setSecondaryStreetAddress] = useState("");
   const [city, setCity] = useState("");
-  const [stateUS, setStateUS] = useState("");
   const [zipCode, setZipCode] = useState("");
+  // State Drop Down Stuff
+  const [itemsStateDD, setItemsStateDD] = useState([{label:"Alabama", value:"AL"},{label:"Alaska", value:"AK"},{label:"Arizona", value:"AZ"},{label:"Arkansas", value:"AR"},{label:"California", value:"CA"},{label:"Colorado", value:"CO"},{label:"Connecticut", value:"CT"},{label:"Delaware", value:"DE"},{label:"Florida", value:"FL"},{label:"Georgia", value:"GA"},{label:"Hawaii", value:"HI"},{label:"Idaho", value:"ID"},{label:"Illinois", value:"IL"},{label:"Indiana", value:"IN"},{label:"Iowa", value:"IA"},{label:"Kansas", value:"KS"},{label:"Kentucky", value:"KY"},{label:"Louisiana", value:"LA"},{label:"Maine", value:"ME"},{label:"Maryland", value:"MD"},{label:"Massachusetts", value:"MA"},{label:"Michigan", value:"MI"},{label:"Minnesota", value:"MN"},{label:"Mississippi", value:"MS"},{label:"Missouri", value:"MO"},{label:"Montana", value:"MT"},{label:"Nebraska", value:"NE"},{label:"Nevada", value:"NV"},{label:"New Hampshire", value:"NH"},{label:"New Jersey", value:"NJ"},{label:"New Mexico", value:"NM"},{label:"New York", value:"NY"},{label:"North Carolina", value:"NC"},{label:"North Dakota", value:"ND"},{label:"Ohio", value:"OH"},{label:"Oklahoma", value:"OK"},{label:"Oregon", value:"OR"},{label:"Pennsylvania", value:"PA"},{label:"Rhode Island", value:"RI"},{label:"South Carolina", value:"SC"},{label:"South Dakota", value:"SD"},{label:"Tennessee", value:"TN"},{label:"Texas", value:"TX"},{label:"Utah", value:"UT"},{label:"Vermont", value:"VT"},{label:"Virginia", value:"VA"},{label:"Washington", value:"WA"},{label:"West Virginia", value:"WV"},{label:"Wisconsin", value:"WI"},{label:"Wyoming", value:"WY"}])
+  const [openStateDD, setOpenStateDD] = useState(false);
+  const [stateUS, setStateUS] = useState<string | null>(null);
   // Dates
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -202,6 +206,11 @@ export default function App() {
     // Handle button press
     debugLog()
     let requiredFilledOut = checkReqFilled()
+    // these three lines are just here because typescript is asanine about types
+    let stateSubmit
+    if (stateUS == null) {stateSubmit = ""}
+    else {stateSubmit = stateUS}
+
     if(requiredFilledOut){
       let saleItem: SaleDBObject = {
         title: saleName,
@@ -210,7 +219,7 @@ export default function App() {
           streetAddress: streetAddress,
           secondaryAddress: secondaryStreetAddress,
           city: city,
-          state: stateUS,
+          state: stateSubmit,
           zipCode: zipCode
         },
         dates: {
@@ -286,7 +295,7 @@ export default function App() {
       reqFilled = false
       valsMissing.push('City');
     }
-    if(stateUS == '') {
+    if(stateUS == null) {
       reqFilled = false
       valsMissing.push('State');
     }
@@ -419,7 +428,7 @@ export default function App() {
         </View>
       </Modal>
 
-      {/* Existing Sale Creation Modal (unchanged) */}
+      {/* Sale Creation Modal */}
       <Modal visible={createSaleModal} animationType='slide' onRequestClose={() => { setCreateSaleModal(false); }}>
         <View className={`${defaultStyle.container}`}>
           <TouchableOpacity className={`${defaultStyle.button} bg-red-600 dark:bg-red-600 w-28 h-10`} onPress={ () => { 
@@ -502,13 +511,28 @@ export default function App() {
                     <Text className={`${defaultStyle.text} text-blue-dark-200`}>
                       State
                     </Text>
-                    <TextInput
+                    <DropDownPicker
+                      open={openStateDD}
+                      value={stateUS}
+                      items={itemsStateDD}
+                      setOpen={setOpenStateDD}
+                      setValue={setStateUS}
+                      setItems={setItemsStateDD}
+                      // style={[
+                      //   styles.dropDown,
+                      //   { backgroundColor: isDarkMode ? "#333" : "#f4f4f4", borderColor: isDarkMode ? "#555" : "#ccc", zIndex: 10 },
+                      // ]}
+                      textStyle={{ color: isDarkMode ? "#fff" : "#000" }} // fontSize: 16 * fontScale
+                      dropDownContainerStyle={{ backgroundColor: isDarkMode ? "#333" : "#f4f4f4", borderColor: isDarkMode ? "#555" : "#ccc" }}
+                      placeholderStyle={{ color: isDarkMode ? "#ccc" : "#888" }}
+                    />
+                    {/* <TextInput
                       className={`${nativeWindStyles.textInput}`}
                       autoCapitalize="none"
                       keyboardType="default"
                       onChangeText={setStateUS}
                       value={stateUS}
-                    />
+                    /> */}
                   </View>
                 </View>
                 {/* Zip Code */}
