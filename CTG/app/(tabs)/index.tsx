@@ -2,7 +2,7 @@ import {
   ActivityIndicator, Animated, Easing, FlatList,
   Keyboard, Modal, StatusBar, Switch, Text,
   TextInput, TouchableOpacity, TouchableWithoutFeedback,
-  View, Image, Button
+  View, Image, Button, StyleSheet
 } from "react-native";
 import "../../global.css";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,7 +17,7 @@ import { Redirect } from "expo-router";
 import WebView from "react-native-webview";
 import { useTranslation } from "react-i18next";
 import { auth } from "../firebaseconfig/firebase";
-import { ref as dbRef, getDatabase, remove, set } from 'firebase/database'
+import { Database, ref as dbRef, getDatabase, remove, set } from 'firebase/database'
 import { onAuthStateChanged, User } from "firebase/auth";
 import { useTextScale } from "../context/TextScaleContext";
 import { loginWithEbay } from "@/ebayConfig";
@@ -69,7 +69,7 @@ export default function Index() {
   // User Stuff
   const [user, setUser] = useState<User | null>(auth.currentUser);
   const [userUID, setUserUID] = useState<string | undefined>(user?.uid);
-  const [database, setDatabase] = useState(getDatabase());
+  const [database, setDatabase] = useState<Database>(getDatabase());
 
 
   // Animation
@@ -128,6 +128,7 @@ export default function Index() {
     const saveRef = `users/${userUID}/savedItems/${cleanTitle}`
     const itemRef = dbRef(database, saveRef);
 
+
     try {
       await set(itemRef, {
         title: item.title,
@@ -139,7 +140,10 @@ export default function Index() {
       console.log('saved Item: ', item.title)
     } catch (error: any) {
       console.error("Save Error: ", error);
+    } finally {
+
     }
+
   }
 
   // removing from firebase logic
@@ -223,7 +227,7 @@ export default function Index() {
 
             <View className="flex-row absolute bottom-2 justify-center content-center w-full">
               <TouchableOpacity onPress={() => setSoldPageModal(true)} className="bg-orange-400 rounded-lg border-2 border-black justify-center w-2/5 self-center h-16" >
-                <Text className={"text-center text-2xl justify-center" + textSettings}>{t("HomeSoldOnWebView")}</Text>
+                <Text className={"text-center text-2xl justify-center" + textSettings}>{t("")}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => { setText(item.title); handleSearch(); setResultModal(false) }} className="bg-orange-400 m-2 rounded-lg border-2 border-black w-1/2 justify-center self-center h-16" >
                 <Text className={"text-center text-2xl" + textSettings}>{t("SearchThisItem")}</Text>
@@ -339,7 +343,6 @@ export default function Index() {
 
   // logic to handle searching from the text
   const handleSearch = () => {
-    // alert(text);
     if (text === '' || text === null) {
       alert("Must Enter Search");
     } else {
@@ -441,7 +444,7 @@ export default function Index() {
               className={styles.TitleText.join(" ") + " text-orange-600"}
             >
               C
-            </Text>
+            </Text>npx n
             <Text
               className={styles.TitleText.join(" ") + " text-white"}
             >
@@ -561,14 +564,14 @@ export default function Index() {
             <SafeAreaView className="h-full w-full bg-blue-dark absolute">
               <View className="flex-row">
                 {/*Back Button that refreshes all states*/}
-                <TouchableOpacity className=" self-left px-1 mt-4 ml-2  "
+                <TouchableOpacity style={buttonStyles.BackButton} className=" self-left px-1 mt-4 ml-2  "
                   onPress={() => {
                     setSearchResultModal(false);
                     setText('');
                     setIsImageSearchActive(false);
                     setPhotoUri(null);
                     setImageSearchResults([]);
-                    setMatchingItems(null);
+                    setMatchingItems(null)
                   }}>
                   <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
                 </TouchableOpacity>
@@ -651,7 +654,7 @@ export default function Index() {
                   onPress={() => {
                     setSearchWebViewState(true);
                   }}
-                  className="self-center bg-orange-400 py-2 px-8 rounded-xl">
+                  className="self-center bg-orange py-2 px-8 rounded-xl">
                   <Text className="text-white text-xl">{t("HomeSoldOnWebView")}</Text>
                 </TouchableOpacity>
               </View>
@@ -718,4 +721,15 @@ const styles = {
   TitleText: ["text-9xl", "font-bold", "font-serif"],
   SearchButton: [],
   ButtonText: [],
+  BackButton: [],
 };
+
+const buttonStyles = StyleSheet.create({
+  BackButton: {
+    position: "absolute",
+    top: 30,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 15,
+  }
+});
