@@ -7,7 +7,7 @@ const resources = {
     translation: {
       ApplicationLogoName: "Copper2Gold",
       welcome: "Welcome",
-      settingsTitle: "Welcome to the settings page",
+      settingsTitle: "Welcome to the Settings Page",
       darkMode: "Dark Mode",
       textSize: "Text Size",
       language: "Language",
@@ -73,7 +73,7 @@ const resources = {
     translation: {
       ApplicationLogoName: "Cobre2Oro",
       welcome: "Bienvenido",
-      settingsTitle: "Bienvenido a la página de configuración",
+      settingsTitle: "Bienvenido a la Página de Configuración",
       darkMode: "Modo oscuro",
       textSize: "Tamaño de texto",
       language: "Idioma",

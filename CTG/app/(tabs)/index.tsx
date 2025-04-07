@@ -564,7 +564,7 @@ export default function Index() {
             <SafeAreaView className="h-full w-full bg-blue-dark absolute">
               <View className="flex-row">
                 {/*Back Button that refreshes all states*/}
-                <TouchableOpacity style={buttonStyles.BackButton} className=" self-left px-1 mt-4 ml-2  "
+                <TouchableOpacity className=" self-left px-1 mt-16 ml-2  "
                   onPress={() => {
                     setSearchResultModal(false);
                     setText('');
@@ -576,7 +576,7 @@ export default function Index() {
                   <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
                 </TouchableOpacity>
 
-                <Text className="self-center text-white font-bold text-2xl  ">
+                <Text className="self-center text-white font-bold text-2xl mt-16 ">
                   {"\t"}{t("AveragePrice")}: ${getAvgPrice(matchingItems ? matchingItems : searchResults)} {"\n"}
                   {"\t"}{t("FoundItems")}: {(matchingItems ? matchingItems : searchResults)?.length}
                 </Text>
@@ -723,13 +723,3 @@ const styles = {
   ButtonText: [],
   BackButton: [],
 };
-
-const buttonStyles = StyleSheet.create({
-  BackButton: {
-    position: "absolute",
-    top: 30,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 15,
-  }
-});
