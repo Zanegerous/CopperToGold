@@ -2,7 +2,7 @@ import {
   ActivityIndicator, Animated, Easing, FlatList,
   Keyboard, Modal, StatusBar, Switch, Text,
   TextInput, TouchableOpacity, TouchableWithoutFeedback,
-  View, Image, Button, StyleSheet
+  View, Image, Button, StyleSheet, Platform
 } from "react-native";
 import "../../global.css";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -272,6 +272,17 @@ export default function Index() {
       </TouchableOpacity>
     );
   };
+
+  const searchAutofill = () => {
+    //do autofill stuffs
+    return (
+      <View
+        style={{ backgroundColor: "green", width: "100%", height: 100}}
+      >
+
+      </View>
+    )
+  }
 
   const getAvgPrice = (list: EbayItem[] | null): number => {
     if (list == null || list.length == 0) {
@@ -564,7 +575,7 @@ export default function Index() {
             <SafeAreaView className="h-full w-full bg-blue-dark absolute">
               <View className="flex-row">
                 {/*Back Button that refreshes all states*/}
-                <TouchableOpacity className=" self-left px-1 mt-16 ml-2  "
+                <TouchableOpacity className=" self-left px-1 mt-4 ml-2  "
                   onPress={() => {
                     setSearchResultModal(false);
                     setText('');
@@ -576,7 +587,7 @@ export default function Index() {
                   <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
                 </TouchableOpacity>
 
-                <Text className="self-center text-white font-bold text-2xl mt-16 ">
+                <Text className="self-center text-white font-bold text-2xl ">
                   {"\t"}{t("AveragePrice")}: ${getAvgPrice(matchingItems ? matchingItems : searchResults)} {"\n"}
                   {"\t"}{t("FoundItems")}: {(matchingItems ? matchingItems : searchResults)?.length}
                 </Text>
