@@ -273,14 +273,17 @@ export default function Index() {
     );
   };
 
-  const searchAutofill = () => {
+  const searchAutofill = ({ item }: { item: string }) => {
     //do autofill stuffs
     return (
-      <View
-        style={{ backgroundColor: "green", width: "100%", height: 100}}
+      <TouchableOpacity
+        onPress={() => {
+          setText(item);
+        }}
+        className="bg-gray-300/70 border-2 rounded-md"
       >
-
-      </View>
+        <Text style={{ fontSize: scale(14), textAlign: "center" }}>{"Lego"}</Text>
+      </TouchableOpacity>
     )
   }
 
@@ -493,6 +496,17 @@ export default function Index() {
                       ref={inputRef}
                       style={{ fontSize: scale(16) }}
                     />
+                    {!historyVisible || history.length == 0 ? (
+                      <View className="bg-slate-800 border-2 rounded-lg mt-1 h-32">
+                        <TouchableOpacity style={{ backgroundColor: "white", borderColor: "#CECECE", borderWidth: 1, width: "95%" }}>
+                          <Text style={{ padding: 10, fontSize: 17}}>
+                            Test
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    ):(
+                      <View />
+                    )}
                     {/* History list */}
                     {historyVisible && history.length >= 1 ? (
                       <View className="bg-slate-800 border-2 rounded-lg mt-1 h-32">
