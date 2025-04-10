@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, TouchableOpacity, View, KeyboardAvoidingView, ScrollView, Text, TextInput, Modal, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DropDownPicker from 'react-native-dropdown-picker';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 import { getDatabase, ref as dbRef, Database, set, onValue } from "firebase/database";
@@ -21,6 +21,7 @@ export default function App() {
   setColorScheme(isDarkMode ? "dark" : "light"); 
 
   // Location Stuff ///
+  const mapRef = useRef<MapView | null>(null);
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   // Default to Ruston if permission denied
   const [lat, setLat] = useState(32.523205);
@@ -102,7 +103,9 @@ export default function App() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   // Misc Sale Creation Stuff
-  const [saleType, setSaleType] = useState("");
+  const [saleTypeDD, setSaleTypeDD] = useState([{label:"Estate Sale", value:"Estate"},{label:"Garage Sale", value:"Garage"},{label:"Other", value:"Other"}]);
+  const [openSaleTypeDD, setOpenSaleTypeDD] = useState(false);
+  const [saleType, setSaleType] = useState<string | null>(null);
   const [details, setDetails] = useState("");
   const [website, setWebsite] = useState("");
 
@@ -178,6 +181,47 @@ export default function App() {
     }
   }, [mapItem]);
 
+  /// Handling Displaying Data on Map ///
+  const emptySale : SaleMapObject = {
+    title: "NULL SALE",
+    type: "",
+    address: "",
+    latlong: {latitude: 0, longitude: 0},
+    dates: {startDates: [], endDates: []},
+    details: "",
+    website: "",
+    creator: undefined,
+    id: ""
+  }
+  const [focusedSale, setfocusedSale] = useState<SaleMapObject>(emptySale);
+  const [showSaleDetails, setShowSaleDetails] = useState("-z-10");
+
+  const markerSelected = (marker:SaleMapObject) => {
+    // First, zoom to the marker
+    const region: Region = {
+      latitude: marker.latlong.latitude,
+      longitude: marker.latlong.longitude,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+    };
+
+    mapRef.current?.animateToRegion(region, 500); // Animate over 1 second
+    // Next, show the extra details
+    console.log(marker.title + " SELECTED\nSETTING FOCUSED SALE TO MARKER");
+    let temp = marker;
+    setfocusedSale(temp);
+    setShowSaleDetails("z-10");
+    console.log("FOCUSED SALE TITLE: " + temp.title)
+  }
+
+  const markerDeselected = (marker:SaleMapObject) => {
+    console.log(marker.title + " DESELECTED\nSETTING FOCUSED SALE TO EMPTY SALE OBJECT");
+    setShowSaleDetails("-z-10");
+    let temp = emptySale;
+    setfocusedSale(temp);
+    console.log("FOCUSED SALE TITLE: " + temp.title)
+  }
+
   /// Helper Functions ///
   const getLatLong = (async (address:string) => {
     let lat;
@@ -206,15 +250,18 @@ export default function App() {
     // Handle button press
     debugLog()
     let requiredFilledOut = checkReqFilled()
-    // these three lines are just here because typescript is asanine about types
+    // these six lines are just here because typescript is asanine about types
     let stateSubmit
     if (stateUS == null) {stateSubmit = ""}
     else {stateSubmit = stateUS}
+    let typeSubmit
+    if (saleType == null) {typeSubmit = ""}
+    else {typeSubmit = saleType}
 
     if(requiredFilledOut){
       let saleItem: SaleDBObject = {
         title: saleName,
-        type: saleType,
+        type: typeSubmit,
         address: {
           streetAddress: streetAddress,
           secondaryAddress: secondaryStreetAddress,
@@ -283,7 +330,7 @@ export default function App() {
       reqFilled = false
       valsMissing.push('Sale Name');
     }
-    if(saleType == '') {
+    if(saleType == null) {
       reqFilled = false
       valsMissing.push('Sale Type');
     }
@@ -358,6 +405,7 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       {/* MAP CODE*/}
       <MapView
+        ref={mapRef}
         style={styles.map}
         region={{
           latitude: lat,
@@ -373,6 +421,8 @@ export default function App() {
             key={index}
             coordinate={marker.latlong}
             title={marker.title}
+            onSelect={() => {markerSelected(marker)}}
+            onDeselect={() => {markerDeselected(marker)}}
           />
         ))}
       </MapView>
@@ -605,7 +655,22 @@ export default function App() {
                   <Text className={`${defaultStyle.text} text-blue-dark-200`}>
                     Sale Type
                   </Text>
-                  <TextInput
+                  <DropDownPicker
+                      open={openSaleTypeDD}
+                      value={saleType}
+                      items={saleTypeDD}
+                      setOpen={setOpenSaleTypeDD}
+                      setValue={setSaleType}
+                      setItems={setSaleTypeDD}
+                      // style={[
+                      //   styles.dropDown,
+                      //   { backgroundColor: isDarkMode ? "#333" : "#f4f4f4", borderColor: isDarkMode ? "#555" : "#ccc", zIndex: 10 },
+                      // ]}
+                      textStyle={{ color: isDarkMode ? "#fff" : "#000" }} // fontSize: 16 * fontScale
+                      dropDownContainerStyle={{ backgroundColor: isDarkMode ? "#333" : "#f4f4f4", borderColor: isDarkMode ? "#555" : "#ccc" }}
+                      placeholderStyle={{ color: isDarkMode ? "#ccc" : "#888" }}
+                    />
+                  {/* <TextInput
                     className={`${nativeWindStyles.textInput}`}
                     autoCapitalize="none"
                     keyboardType="default"
@@ -613,7 +678,7 @@ export default function App() {
                     placeholderTextColor={isDarkMode ? "#999" : "#b6c2f7"}
                     onChangeText={setSaleType}
                     value={saleType}
-                  />
+                  /> */}
                 </View>
                 {/* Website */}
                 <View>
@@ -642,6 +707,18 @@ export default function App() {
           </KeyboardAvoidingView>
         </View>
       </Modal>
+
+      {/* View to display data, hidden by default */}
+      <View className={`bg-white ${showSaleDetails} w-full h-1/3 absolute bottom-0 left-0`}>
+        <Text>Title: {focusedSale.title}</Text>
+        <Text>Details: {focusedSale.details}</Text>
+        <Text>Sale Type: {focusedSale.type}</Text>
+        <Text>Address: {focusedSale.address}</Text>
+        <Text>Dates:</Text>
+        <Text>Start Date and Time: {focusedSale.dates.startDates[0]}</Text>
+        <Text>Start End Date and Time: {focusedSale.dates.startDates[0]}</Text>
+        <Text>Links: {focusedSale.website}</Text>
+      </View>
     </SafeAreaView>
   );
 }
@@ -677,7 +754,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 80,
     left: 20,
-    zIndex: 9999,
+    zIndex: 1,
   },
   calcButton: {
     backgroundColor: '#ddd',
