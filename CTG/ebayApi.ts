@@ -204,3 +204,12 @@ export const searchEbayByImage = async (imageQuery: string): Promise<EbayItem[]>
   }
   return returnItems;
 };
+
+export const uploadDraft = async (title: string, description: string, condition: string, price: string, sku: string, imageurl: string[], quantity: string) => {
+  const user = auth.currentUser;
+  let retry = false;
+
+  alert("This will be uploaded")
+
+
+}

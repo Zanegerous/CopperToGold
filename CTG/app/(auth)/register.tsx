@@ -1,5 +1,26 @@
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { auth } from "../firebaseconfig/firebase";
+import { ref as dbRef, getDatabase, remove, set } from 'firebase/database'
+import { useState } from "react";
+
+
+// Sets up basic user info on account creation
+const userSetup = async (user: any) => {
+  const database = getDatabase();
+  const userUID = user.uid;
+  const saveRef = `users/${userUID}/Account/securityLevel`
+  const itemRef = dbRef(database, saveRef);
+  try {
+    await set(itemRef, {
+      securityLevel: 'user',
+      allowedQuery: 20,
+      allowedTextSearch: 20
+    });
+  } catch (error: any) {
+    console.error("Account Setup Error: ", error);
+  }
+}
+
 
 // Email validation regex
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -24,6 +45,8 @@ export const registerWithEmailAndPassword = async (email: string, password: stri
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     // Send verification email
     await sendEmailVerification(userCredential.user);
+
+    userSetup(userCredential.user);
     return { user: userCredential.user, error: null };
   } catch (error) {
     return { user: null, error };

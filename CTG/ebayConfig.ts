@@ -28,7 +28,7 @@ export const loginWithEbay = async (uid: any) => {
     "https://api.ebay.com/oauth/api_scope/commerce.notification.subscription.readonly",
     "https://api.ebay.com/oauth/api_scope/sell.stores",
     "https://api.ebay.com/oauth/api_scope/sell.stores.readonly",
-    "https://api.ebay.com/oauth/scope/sell.edelivery"
+    "https://api.ebay.com/oauth/scope/sell.edelivery",
   ].join(' ');
 
   const authUrl = `https://auth.ebay.com/oauth2/authorize?client_id=${ebayConfig.clientId}&response_type=code&redirect_uri=${ebayConfig.redirect_uri}&scope=${scopes}&state=${uid}`;
