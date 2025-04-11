@@ -7,37 +7,41 @@ import { getDatabase, ref as dbRef, set } from 'firebase/database';
 import axios from 'axios';
 import { getUserID } from '@/app/functionForApp/simpleFunctions';
 import { useTranslation } from "react-i18next";
+import { getUserLevel, updateTextScanAmmount } from '@/ebayApi';
 
 
 const takePictureText = async (camera: { takePictureAsync: () => any } | null) => {
     try {
+
         if (camera != null) {
-            
-            const apiKey = ''; // Check discord for it, will need to be moved later to backend, fine here for now, just dont push to github with it
-            const photo = await camera.takePictureAsync();
-            const urifetch = await fetch(photo.uri);
-            const blob = await urifetch.blob();
-            const storage = getStorage();
-            const dateUploadTime = Date.now()
-            // upload the image ref
-            const folderLocation = `user/${getUserID()}/temp/${dateUploadTime}.jpg`
-            const imageRef = storageRef(storage, folderLocation);
-            await uploadBytes(imageRef, blob);
-            const firebaseUrl = await getDownloadURL(imageRef);
+            if (await updateTextScanAmmount()) {
+                const apiKey = ''; // Check discord for it, will need to be moved later to backend, fine here for now, just dont push to github with it
+                const photo = await camera.takePictureAsync();
+                const urifetch = await fetch(photo.uri);
+                const blob = await urifetch.blob();
+                const storage = getStorage();
+                const dateUploadTime = Date.now()
+                // upload the image ref
+                const folderLocation = `user/${getUserID()}/temp/${dateUploadTime}.jpg`
+                const imageRef = storageRef(storage, folderLocation);
+                await uploadBytes(imageRef, blob);
+                const firebaseUrl = await getDownloadURL(imageRef);
+                const endpointUrl = `https://api.apilayer.com/image_to_text/url?url=${encodeURIComponent(firebaseUrl)}`;
 
-            const endpointUrl = `https://api.apilayer.com/image_to_text/url?url=${encodeURIComponent(firebaseUrl)}`;
+                const response = await axios.get(endpointUrl, {
+                    headers: {
+                        apiKey: apiKey,
+                    },
+                });
 
-            const response = await axios.get(endpointUrl, {
-                headers: {
-                    apiKey: apiKey,
-                },
-            });
+                const text = response.data.all_text;
 
-            const text = response.data.all_text;
-
-            // remove it once done.
-            await deleteObject(imageRef);
-            return text;
+                // remove it once done.
+                await deleteObject(imageRef);
+                return text;
+            } else {
+                return 'Max Text Scans Reached';
+            }
         }
     } catch (error) {
         console.error('Error: ', error);

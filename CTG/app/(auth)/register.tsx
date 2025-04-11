@@ -5,14 +5,14 @@ import { useState } from "react";
 
 
 // Sets up basic user info on account creation
-const userSetup = async (user: any) => {
+export const userSetup = async (user: any, userLevel: string) => {
   const database = getDatabase();
   const userUID = user.uid;
-  const saveRef = `users/${userUID}/Account/securityLevel`
+  const saveRef = `users/${userUID}/Account/`
   const itemRef = dbRef(database, saveRef);
   try {
     await set(itemRef, {
-      securityLevel: 'user',
+      securityLevel: userLevel,
       allowedQuery: 20,
       allowedTextSearch: 20
     });
@@ -46,7 +46,7 @@ export const registerWithEmailAndPassword = async (email: string, password: stri
     // Send verification email
     await sendEmailVerification(userCredential.user);
 
-    userSetup(userCredential.user);
+    userSetup(userCredential.user, 'user');
     return { user: userCredential.user, error: null };
   } catch (error) {
     return { user: null, error };
