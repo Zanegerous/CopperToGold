@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, View, KeyboardAvoidingView, ScrollView, Text, TextInput, Modal, Alert } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, KeyboardAvoidingView, ScrollView, Text, TextInput, Modal, Alert, Button } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DropDownPicker from 'react-native-dropdown-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import MapView, { Marker, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
@@ -98,16 +99,71 @@ export default function App() {
   // State Drop Down Stuff
   const [itemsStateDD, setItemsStateDD] = useState([{label:"Alabama", value:"AL"},{label:"Alaska", value:"AK"},{label:"Arizona", value:"AZ"},{label:"Arkansas", value:"AR"},{label:"California", value:"CA"},{label:"Colorado", value:"CO"},{label:"Connecticut", value:"CT"},{label:"Delaware", value:"DE"},{label:"Florida", value:"FL"},{label:"Georgia", value:"GA"},{label:"Hawaii", value:"HI"},{label:"Idaho", value:"ID"},{label:"Illinois", value:"IL"},{label:"Indiana", value:"IN"},{label:"Iowa", value:"IA"},{label:"Kansas", value:"KS"},{label:"Kentucky", value:"KY"},{label:"Louisiana", value:"LA"},{label:"Maine", value:"ME"},{label:"Maryland", value:"MD"},{label:"Massachusetts", value:"MA"},{label:"Michigan", value:"MI"},{label:"Minnesota", value:"MN"},{label:"Mississippi", value:"MS"},{label:"Missouri", value:"MO"},{label:"Montana", value:"MT"},{label:"Nebraska", value:"NE"},{label:"Nevada", value:"NV"},{label:"New Hampshire", value:"NH"},{label:"New Jersey", value:"NJ"},{label:"New Mexico", value:"NM"},{label:"New York", value:"NY"},{label:"North Carolina", value:"NC"},{label:"North Dakota", value:"ND"},{label:"Ohio", value:"OH"},{label:"Oklahoma", value:"OK"},{label:"Oregon", value:"OR"},{label:"Pennsylvania", value:"PA"},{label:"Rhode Island", value:"RI"},{label:"South Carolina", value:"SC"},{label:"South Dakota", value:"SD"},{label:"Tennessee", value:"TN"},{label:"Texas", value:"TX"},{label:"Utah", value:"UT"},{label:"Vermont", value:"VT"},{label:"Virginia", value:"VA"},{label:"Washington", value:"WA"},{label:"West Virginia", value:"WV"},{label:"Wisconsin", value:"WI"},{label:"Wyoming", value:"WY"}])
   const [openStateDD, setOpenStateDD] = useState(false);
-  const [stateUS, setStateUS] = useState<string | null>(null);
+  const [stateUS, setStateUS] = useState<string>("");
   // Dates
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDateList, setStartDateList] = useState<Date[]>([]);
+  const [startDate, setStartDate] = useState<Date>(new Date(0));
+  const [startDateMode, setStartDateMode] = useState<'date' | 'time'>('date');
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [startDateString, setStartDateString] = useState<string>("");
+  const dateOptions:any = { dateStyle: "short", timeStyle: "short" };
+  const dateStrFormat = new Intl.DateTimeFormat(undefined, dateOptions);
+  const [endDateList, setEndDateList] = useState<Date[]>([]);
+  const [endDate, setEndDate] = useState<Date>(new Date(0));
+  const [endDateMode, setEndDateMode] = useState<'date' | 'time'>('date');
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [endDateString, setEndDateString] = useState<string>("");
   // Misc Sale Creation Stuff
   const [saleTypeDD, setSaleTypeDD] = useState([{label:"Estate Sale", value:"Estate"},{label:"Garage Sale", value:"Garage"},{label:"Other", value:"Other"}]);
   const [openSaleTypeDD, setOpenSaleTypeDD] = useState(false);
-  const [saleType, setSaleType] = useState<string | null>(null);
+  const [saleType, setSaleType] = useState<string>("");
   const [details, setDetails] = useState("");
   const [website, setWebsite] = useState("");
+
+  const onChangeStartDate = (event: any, selectedDate: any) => {
+    setShowStartDatePicker(false);
+    if (event.type == 'set'){
+      const currentDate = selectedDate;
+      setStartDate(currentDate);
+      let dateStr = dateStrFormat.format(currentDate);
+      setStartDateString(dateStr)
+      if(startDateMode === 'date'){
+        const tempDate = new Date(selectedDate);
+        tempDate.setHours(
+          endDate.getHours(),
+          endDate.getMinutes(),
+          endDate.getSeconds(),
+          endDate.getMilliseconds()
+        );
+        setEndDate(tempDate);
+        let endDateStr = dateStrFormat.format(tempDate);
+        setEndDateString(endDateStr)
+      }
+    }
+    
+  };
+
+  const showStartMode = (currentMode:"date" | "time") => {
+    setShowStartDatePicker(true);
+    setStartDateMode(currentMode);
+  };
+
+  const onChangeEndDate = (event: any, selectedDate: any) => {
+    setShowEndDatePicker(false);
+    if(event.type == "set"){
+      const currentDate = selectedDate;
+      setShowEndDatePicker(false);
+      setEndDate(currentDate);
+      const dateOptions:any = { dateStyle: "short", timeStyle: "short" };
+      let endDateStr = new Intl.DateTimeFormat(undefined, dateOptions).format(currentDate);
+      setEndDateString(endDateStr);
+    }
+  };
+
+  const showEndMode = (currentMode:"date" | "time") => {
+    setShowEndDatePicker(true);
+    setEndDateMode(currentMode);
+  };
 
   /// Adding and retrieving from DB ///
   const [savedMapList, setSavedMapList] = useState<SaleMapObject[]>([]);
@@ -201,11 +257,11 @@ export default function App() {
     const region: Region = {
       latitude: marker.latlong.latitude,
       longitude: marker.latlong.longitude,
-      latitudeDelta: 0.01,
-      longitudeDelta: 0.01,
+      latitudeDelta: latDelta,
+      longitudeDelta: lngDelta,
     };
 
-    mapRef.current?.animateToRegion(region, 500); // Animate over 1 second
+    mapRef.current?.animateToRegion(region, 500); // Animate over 0.5 seconds
     // Next, show the extra details
     console.log(marker.title + " SELECTED\nSETTING FOCUSED SALE TO MARKER");
     let temp = marker;
@@ -250,28 +306,21 @@ export default function App() {
     // Handle button press
     debugLog()
     let requiredFilledOut = checkReqFilled()
-    // these six lines are just here because typescript is asanine about types
-    let stateSubmit
-    if (stateUS == null) {stateSubmit = ""}
-    else {stateSubmit = stateUS}
-    let typeSubmit
-    if (saleType == null) {typeSubmit = ""}
-    else {typeSubmit = saleType}
 
     if(requiredFilledOut){
       let saleItem: SaleDBObject = {
         title: saleName,
-        type: typeSubmit,
+        type: saleType,
         address: {
           streetAddress: streetAddress,
           secondaryAddress: secondaryStreetAddress,
           city: city,
-          state: stateSubmit,
+          state: stateUS,
           zipCode: zipCode
         },
         dates: {
-          startDates: [startDate],
-          endDates: [endDate]
+          startDates: [startDateString],
+          endDates: [endDateString]
         },
         details: details,
         website: website,
@@ -330,7 +379,7 @@ export default function App() {
       reqFilled = false
       valsMissing.push('Sale Name');
     }
-    if(saleType == null) {
+    if(saleType == "") {
       reqFilled = false
       valsMissing.push('Sale Type');
     }
@@ -342,7 +391,7 @@ export default function App() {
       reqFilled = false
       valsMissing.push('City');
     }
-    if(stateUS == null) {
+    if(stateUS == "") {
       reqFilled = false
       valsMissing.push('State');
     }
@@ -350,13 +399,13 @@ export default function App() {
       reqFilled = false
       valsMissing.push('Zip Code');
     }
-    if(startDate == '') {
+    if(startDateString == ''){
       reqFilled = false
-      valsMissing.push('Start Date of Sale');
+      valsMissing.push('Start Date');
     }
-    if(endDate == '') {
+    if(endDateString == ''){
       reqFilled = false
-      valsMissing.push('End Date of Sale');
+      valsMissing.push('End Date');
     }
     if(reqFilled == false){
       let missingStr = "You cannot submit this sale without the following data:\n"
@@ -366,6 +415,10 @@ export default function App() {
       let finalStr = missingStr.slice(0, -2); // remove the ", " on the end of the last item.
       Alert.alert("Error: Missing Data", finalStr);
       console.error("Error: Missing Data\n" + finalStr);
+    } else if(endDate <= startDate){
+      Alert.alert("Error: The end date cannot be before the start date.");
+      console.error("Error: The end date cannot be before the start date.");
+      return(false);
     }
     return(reqFilled);
   }
@@ -378,8 +431,10 @@ export default function App() {
     setCity('');
     setStateUS('');
     setZipCode('');
-    setStartDate('');
-    setEndDate('');
+    setStartDate(new Date());
+    setEndDate(new Date());
+    setStartDateString('');
+    setEndDateString('');
     setDetails('');
     setWebsite('');
   };
@@ -491,7 +546,7 @@ export default function App() {
           </TouchableOpacity>
           <KeyboardAvoidingView>
             <ScrollView className="w-full p-1">
-            {/* Sale Name */}
+              {/* Sale Name */}
               <View className="w-full mb-4">
                 <Text className={`${defaultStyle.title} text-center text-2xl text-blue-dark-200`}>
                   List a New Sale
@@ -606,29 +661,48 @@ export default function App() {
               <View className="w-full mb-4 flex flex-row">
                 {/* TODO: Allow users to actually input multiple dates */}
                 <View className="flex-1 w-1/2 px-1">
+                  <TouchableOpacity className={`${defaultStyle.button} bg-green-400`} onPress={() => {showStartMode('date')}}>
+                    <Text className={`${defaultStyle.buttonText} text-blue-dark-200`}>
+                      Choose Date
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity className={`${defaultStyle.button} bg-green-400`} onPress={() => {showStartMode('time')}}>
+                    <Text className={`${defaultStyle.buttonText} text-blue-dark-200`}>
+                      Choose Start Time
+                    </Text>
+                  </TouchableOpacity>
+                  {showStartDatePicker && (
+                    <DateTimePicker
+                      testID="startDateTimePicker"
+                      value={startDate}
+                      mode={startDateMode}
+                      is24Hour={false}
+                      onChange={onChangeStartDate}
+                    />
+                  )}
                   <Text className={`${defaultStyle.text} text-blue-dark-200`}>
-                    Start Date
+                    Start Date and Time: {startDateString}
                   </Text>
-                  <TextInput
-                    className={`${nativeWindStyles.textInput}`}
-                    autoCapitalize="none"
-                    keyboardType="default"
-                    onChangeText={setStartDate}
-                    value={startDate}
-                  />
                 </View>
                 {/* End Dates */}
                 <View className="flex-1 w-1/2 px-1">
+                  <TouchableOpacity className={`${defaultStyle.button} bg-green-400`} onPress={() => {showEndMode('time')}}>
+                    <Text className={`${defaultStyle.buttonText} text-blue-dark-200`}>
+                      Choose End Time
+                    </Text>
+                  </TouchableOpacity>
+                  {showEndDatePicker && (
+                    <DateTimePicker
+                      testID="endDateTimePicker"
+                      value={endDate}
+                      mode={endDateMode}
+                      is24Hour={false}
+                      onChange={onChangeEndDate}
+                    />
+                  )}
                   <Text className={`${defaultStyle.text} text-blue-dark-200`}>
-                    End Date
-                  </Text>
-                  <TextInput
-                    className={`${nativeWindStyles.textInput}`}
-                    autoCapitalize="none"
-                    keyboardType="default"
-                    onChangeText={setEndDate}
-                    value={endDate}
-                  />
+                    End Date and Time: {endDateString}
+                    </Text>
                 </View>
               </View>
               <View className='py-1'>
@@ -716,7 +790,7 @@ export default function App() {
         <Text>Address: {focusedSale.address}</Text>
         <Text>Dates:</Text>
         <Text>Start Date and Time: {focusedSale.dates.startDates[0]}</Text>
-        <Text>Start End Date and Time: {focusedSale.dates.startDates[0]}</Text>
+        <Text>End Date and Time: {focusedSale.dates.endDates[0]}</Text>
         <Text>Links: {focusedSale.website}</Text>
       </View>
     </SafeAreaView>
