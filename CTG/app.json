@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSUserNotificationUsageDescription": "This app uses notifications to remind you to check out the app."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +26,11 @@
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.zanegerous.CTG"
+      "package": "com.zanegerous.CTG",
+      "notification": {
+        "icon": "./assets/images/icon.png",
+        "color": "#ffffff"
+      }
     },
     "web": {
       "bundler": "metro",
