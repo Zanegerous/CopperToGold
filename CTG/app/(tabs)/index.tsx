@@ -458,7 +458,7 @@ export default function Index() {
               className={styles.TitleText.join(" ") + " text-orange-600"}
             >
               C
-            </Text>npx n
+            </Text>
             <Text
               className={styles.TitleText.join(" ") + " text-white"}
             >
@@ -499,12 +499,12 @@ export default function Index() {
                     {!historyVisible || history.length == 0 ? (
                       <View className="bg-slate-800 border-2 rounded-lg mt-1 h-32">
                         <TouchableOpacity style={{ backgroundColor: "white", borderColor: "#CECECE", borderWidth: 1, width: "95%" }}>
-                          <Text style={{ padding: 10, fontSize: 17}}>
+                          <Text style={{ padding: 10, fontSize: 17 }}>
                             Test
                           </Text>
                         </TouchableOpacity>
                       </View>
-                    ):(
+                    ) : (
                       <View />
                     )}
                     {/* History list */}
