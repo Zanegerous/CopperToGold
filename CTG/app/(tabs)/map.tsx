@@ -185,9 +185,9 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribe = onValue(saveRef, async (snapshot) => { // This creates a mounting point to listen to the savedItems position for updates.
-      console.log("RELOAD PAGE CALLED, savedMapList =" + savedMapList);
+      // console.log("RELOAD PAGE CALLED, savedMapList =" + savedMapList);
       const savedSnapshot = snapshot.val();
-      console.log("DATA GRABBED, beginning processing");
+      // console.log("DATA GRABBED, beginning processing");
       for (let item in savedSnapshot) {
         const data = savedSnapshot[item];
         
@@ -210,7 +210,7 @@ export default function App() {
           website: data.website,
           creator: data.creator
         });
-        console.log("LOCATION SHOULD BE PUSHED TO SET");
+        // console.log("LOCATION SHOULD BE PUSHED TO SET");
       }
       resetCreateSale();
     });
@@ -229,10 +229,10 @@ export default function App() {
       if(notDupe){
         let currItems = savedMapList;
         currItems.push(mapItem);
-        console.log("ITEM SAVED TO MAP LIST, SHOULD NOW BE RENDERING");
+        // console.log("ITEM SAVED TO MAP LIST, SHOULD NOW BE RENDERING");
         setSavedMapList(currItems);
       } else {
-        console.log("ITEM AlREADY IN MAP, NOT RERENDERING");
+        // console.log("ITEM AlREADY IN MAP, NOT RERENDERING");
       }
     }
   }, [mapItem]);
@@ -263,19 +263,19 @@ export default function App() {
 
     mapRef.current?.animateToRegion(region, 500); // Animate over 0.5 seconds
     // Next, show the extra details
-    console.log(marker.title + " SELECTED\nSETTING FOCUSED SALE TO MARKER");
+    // console.log(marker.title + " SELECTED\nSETTING FOCUSED SALE TO MARKER");
     let temp = marker;
     setfocusedSale(temp);
     setShowSaleDetails("z-10");
-    console.log("FOCUSED SALE TITLE: " + temp.title)
+    // console.log("FOCUSED SALE TITLE: " + temp.title)
   }
 
   const markerDeselected = (marker:SaleMapObject) => {
-    console.log(marker.title + " DESELECTED\nSETTING FOCUSED SALE TO EMPTY SALE OBJECT");
+    // console.log(marker.title + " DESELECTED\nSETTING FOCUSED SALE TO EMPTY SALE OBJECT");
     setShowSaleDetails("-z-10");
     let temp = emptySale;
     setfocusedSale(temp);
-    console.log("FOCUSED SALE TITLE: " + temp.title)
+    // console.log("FOCUSED SALE TITLE: " + temp.title)
   }
 
   /// Helper Functions ///
@@ -286,18 +286,18 @@ export default function App() {
       let geocode = await Location.geocodeAsync(address);
       lat = geocode[0].latitude;
       long = geocode[0].longitude;
-      console.log("LATLONG DETERMINED FOR A LOCATION");
+      // console.log("LATLONG DETERMINED FOR A LOCATION");
     } catch (error) {
       console.error("Geocoding error:", error);
       lat = 32.523205;
       long = -92.637924;
-      console.log("LATLONG COULD NOE BE DETERMINED FOR A LOCATION, DEFAULTING");
+      // console.log("LATLONG COULD NOE BE DETERMINED FOR A LOCATION, DEFAULTING");
     }
     return({lat, long});
   })
 
   const handlePress = () => {
-    console.log('Create Button pressed!');
+    // console.log('Create Button pressed!');
     console.log(savedMapList);
     setCreateSaleModal(true);
   };
@@ -462,6 +462,7 @@ export default function App() {
       <MapView
         ref={mapRef}
         style={styles.map}
+        customMapStyle={isDarkMode ? darkMapStyle : []}
         region={{
           latitude: lat,
           longitude: lng,
@@ -484,7 +485,7 @@ export default function App() {
 
       {/* Create New Sale Button*/}
       <TouchableOpacity style={styles.button} onPress={handlePress}>
-        <Icon name="plussquare" size={50} color="#040A25" />
+        <Icon name="plussquare" size={50} color={isDarkMode? "#ddd" : "#081449"} />
       </TouchableOpacity>
 
       {/* Calculator Button */}
@@ -540,7 +541,7 @@ export default function App() {
             setCreateSaleModal(false)
             resetCreateSale()
           }}>
-            <Text className={`${defaultStyle.buttonText} text-center py-2 `}>
+            <Text className={`${defaultStyle.buttonText} text-center dark:text-white py-2 `}>
               Cancel
             </Text>
           </TouchableOpacity>
@@ -623,21 +624,15 @@ export default function App() {
                       setOpen={setOpenStateDD}
                       setValue={setStateUS}
                       setItems={setItemsStateDD}
-                      // style={[
-                      //   styles.dropDown,
-                      //   { backgroundColor: isDarkMode ? "#333" : "#f4f4f4", borderColor: isDarkMode ? "#555" : "#ccc", zIndex: 10 },
-                      // ]}
-                      textStyle={{ color: isDarkMode ? "#fff" : "#000" }} // fontSize: 16 * fontScale
-                      dropDownContainerStyle={{ backgroundColor: isDarkMode ? "#333" : "#f4f4f4", borderColor: isDarkMode ? "#555" : "#ccc" }}
-                      placeholderStyle={{ color: isDarkMode ? "#ccc" : "#888" }}
+                      placeholder='Choose your state'
+                      style={[
+                        styles.dropDown,
+                        { backgroundColor: isDarkMode ? "#040a25" : "#fff", borderColor: isDarkMode ? "#6b7280" : "#b6c2f7",  },
+                      ]}
+                      textStyle={{ color: isDarkMode ? "#fff" : "#889CF2", fontFamily : "Lato-Regular" }}
+                      dropDownContainerStyle={{ backgroundColor: isDarkMode ? "#060F37" : "#f8f8f8", borderColor: isDarkMode ? "#6b7280" : "#b6c2f7" }}
+                      placeholderStyle={{ color: isDarkMode ? "#ccc" : "#b6c2f7", fontFamily : "Lato-Regular" }}
                     />
-                    {/* <TextInput
-                      className={`${nativeWindStyles.textInput}`}
-                      autoCapitalize="none"
-                      keyboardType="default"
-                      onChangeText={setStateUS}
-                      value={stateUS}
-                    /> */}
                   </View>
                 </View>
                 {/* Zip Code */}
@@ -658,15 +653,15 @@ export default function App() {
               <Text className={`${defaultStyle.text} text-center text-xl text-blue-dark-200`}>
                 Date Information
               </Text>
+              <TouchableOpacity className={`${defaultStyle.button} dark:bg-slate-400 h-7 w-3/5 flex-1 justify-center items-center self-center my-2 px-3`} onPress={() => {showStartMode('date')}}>
+                <Text className={`${defaultStyle.buttonText} text-blue-dark-200`}>
+                  Choose Date
+                </Text>
+              </TouchableOpacity>
               <View className="w-full mb-4 flex flex-row">
                 {/* TODO: Allow users to actually input multiple dates */}
                 <View className="flex-1 w-1/2 px-1">
-                  <TouchableOpacity className={`${defaultStyle.button} bg-green-400`} onPress={() => {showStartMode('date')}}>
-                    <Text className={`${defaultStyle.buttonText} text-blue-dark-200`}>
-                      Choose Date
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity className={`${defaultStyle.button} bg-green-400`} onPress={() => {showStartMode('time')}}>
+                  <TouchableOpacity className={`${defaultStyle.button} dark:bg-slate-400 h-7 w-full justify-center items-center my-2 px-3`} onPress={() => {showStartMode('time')}}>
                     <Text className={`${defaultStyle.buttonText} text-blue-dark-200`}>
                       Choose Start Time
                     </Text>
@@ -686,7 +681,7 @@ export default function App() {
                 </View>
                 {/* End Dates */}
                 <View className="flex-1 w-1/2 px-1">
-                  <TouchableOpacity className={`${defaultStyle.button} bg-green-400`} onPress={() => {showEndMode('time')}}>
+                  <TouchableOpacity className={`${defaultStyle.button} dark:bg-slate-400 h-7 w-full justify-center self-end items-center my-2 px-3`} onPress={() => {showEndMode('time')}}>
                     <Text className={`${defaultStyle.buttonText} text-blue-dark-200`}>
                       Choose End Time
                     </Text>
@@ -701,7 +696,7 @@ export default function App() {
                     />
                   )}
                   <Text className={`${defaultStyle.text} text-blue-dark-200`}>
-                    End Date and Time: {endDateString}
+                    End Date and Time:         {endDateString}
                     </Text>
                 </View>
               </View>
@@ -736,23 +731,15 @@ export default function App() {
                       setOpen={setOpenSaleTypeDD}
                       setValue={setSaleType}
                       setItems={setSaleTypeDD}
-                      // style={[
-                      //   styles.dropDown,
-                      //   { backgroundColor: isDarkMode ? "#333" : "#f4f4f4", borderColor: isDarkMode ? "#555" : "#ccc", zIndex: 10 },
-                      // ]}
-                      textStyle={{ color: isDarkMode ? "#fff" : "#000" }} // fontSize: 16 * fontScale
-                      dropDownContainerStyle={{ backgroundColor: isDarkMode ? "#333" : "#f4f4f4", borderColor: isDarkMode ? "#555" : "#ccc" }}
-                      placeholderStyle={{ color: isDarkMode ? "#ccc" : "#888" }}
+                      placeholder='Choose the type of sale you are listing'
+                      style={[
+                        styles.dropDown,
+                        { backgroundColor: isDarkMode ? "#040a25" : "#fff", borderColor: isDarkMode ? "#6b7280" : "#b6c2f7",  },
+                      ]}
+                      textStyle={{ color: isDarkMode ? "#fff" : "#889CF2", fontFamily : "Lato-Regular" }}
+                      dropDownContainerStyle={{ backgroundColor: isDarkMode ? "#060F37" : "#f8f8f8", borderColor: isDarkMode ? "#6b7280" : "#b6c2f7" }}
+                      placeholderStyle={{ color: isDarkMode ? "#ccc" : "#b6c2f7", fontFamily : "Lato-Regular" }}
                     />
-                  {/* <TextInput
-                    className={`${nativeWindStyles.textInput}`}
-                    autoCapitalize="none"
-                    keyboardType="default"
-                    placeholder="e.g., Estate, Garage, Other"
-                    placeholderTextColor={isDarkMode ? "#999" : "#b6c2f7"}
-                    onChangeText={setSaleType}
-                    value={saleType}
-                  /> */}
                 </View>
                 {/* Website */}
                 <View>
@@ -783,15 +770,14 @@ export default function App() {
       </Modal>
 
       {/* View to display data, hidden by default */}
-      <View className={`bg-white ${showSaleDetails} w-full h-1/3 absolute bottom-0 left-0`}>
-        <Text>Title: {focusedSale.title}</Text>
-        <Text>Details: {focusedSale.details}</Text>
-        <Text>Sale Type: {focusedSale.type}</Text>
-        <Text>Address: {focusedSale.address}</Text>
-        <Text>Dates:</Text>
-        <Text>Start Date and Time: {focusedSale.dates.startDates[0]}</Text>
-        <Text>End Date and Time: {focusedSale.dates.endDates[0]}</Text>
-        <Text>Links: {focusedSale.website}</Text>
+      <View className={`bg-white dark:bg-blue-dark-200 ${showSaleDetails} w-full h-1/3 absolute bottom-0 left-0 border rounded border-blue-light-100 dark:border-white`}>
+        <Text className={`${defaultStyle.title} ${nativeWindStyles.descTitle}`}>{focusedSale.title}</Text>
+        {focusedSale.details != '' && <Text className={`${defaultStyle.text} ${nativeWindStyles.descText}`}>Details: {focusedSale.details}</Text>}
+        <Text className={`${defaultStyle.text} ${nativeWindStyles.descText}`}>Address: {focusedSale.address}</Text>
+        <Text className={`${defaultStyle.text} ${nativeWindStyles.descText}`}>Start Date and Time: {focusedSale.dates.startDates[0]}</Text>
+        <Text className={`${defaultStyle.text} ${nativeWindStyles.descText}`}>End Date and Time: {focusedSale.dates.endDates[0]}</Text>
+        <Text className={`${defaultStyle.text} ${nativeWindStyles.descText}`}>Sale Type: {focusedSale.type}</Text>
+        {focusedSale.website !== '' && <Text className={`${defaultStyle.text} ${nativeWindStyles.descText}`}>Links: {focusedSale.website}</Text>}
       </View>
     </SafeAreaView>
   );
@@ -800,7 +786,9 @@ export default function App() {
 // Keep the map styles unmodified for the existing map
 
 const nativeWindStyles = {
-  textInput : "border rounded px-3 py-2 border-blue-light-100 dark:border-gray-500 text-blue-light-200 dark:text-white"
+  textInput : "border rounded px-3 py-2 border-blue-light-100 dark:border-gray-500 text-blue-light-200 dark:text-white",
+  descText : "text-blue-dark-200 text-lg p-0.5",
+  descTitle : "text-blue-dark-200 text-3xl py-3"
 }
 const styles = StyleSheet.create({
   container: {
@@ -821,6 +809,12 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     fontSize: 16,
+  },
+  dropDown: {
+    borderWidth: 1,
+    zIndex: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
   },
 
   // Calculator button & modal styling
@@ -848,3 +842,165 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
+const darkMapStyle = [
+  {
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#242f3e"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#746855"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+        "color": "#242f3e"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.locality",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#d59563"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#d59563"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#263c3f"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#6b9a76"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#38414e"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+        "color": "#212a37"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#9ca5b3"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#746855"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+        "color": "#1f2835"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#f3d19c"
+      }
+    ]
+  },
+  {
+    "featureType": "transit",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#2f3948"
+      }
+    ]
+  },
+  {
+    "featureType": "transit.station",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#d59563"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#17263c"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#515c6d"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+        "color": "#17263c"
+      }
+    ]
+  }
+]
