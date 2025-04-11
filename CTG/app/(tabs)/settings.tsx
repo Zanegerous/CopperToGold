@@ -106,7 +106,7 @@ const Settings: React.FC = () => {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? "#000" : "#003" }]}>
       {/* Title */}
-      <Text style={[styles.title, { color: isDarkMode ? "#fff" : "#ddd", fontSize: 18 * fontScale }]}>
+      <Text style={[styles.title, { color: isDarkMode ? "#fff" : "#fa0", fontSize: 22 * fontScale }]}>
         {i18n.t("settingsTitle")}
       </Text>
 
