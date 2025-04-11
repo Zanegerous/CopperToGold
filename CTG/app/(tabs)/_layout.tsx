@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/FontAwesome'
 
 export default function TabLayout() {
   return (
-    <Tabs screenOptions={{ tabBarActiveTintColor: 'blue', tabBarActiveBackgroundColor: 'lightgrey', tabBarInactiveBackgroundColor: 'grey', tabBarInactiveTintColor: 'white' }}>
+    <Tabs screenOptions={{ tabBarActiveTintColor: 'blue', tabBarActiveBackgroundColor: 'orange', tabBarInactiveBackgroundColor: '#47f', tabBarInactiveTintColor: '#fb6' }}>
 
       <Tabs.Screen name="settings" options={{ headerShown: false, title: "", tabBarIcon: ({ color }) => <Icon name="gear" size={25} color={color} /> }} />
       <Tabs.Screen name="index" options={{ headerShown: false, title: "", tabBarIcon: ({ color }) => <Icon name="tasks" size={25} color={color} /> }} />
