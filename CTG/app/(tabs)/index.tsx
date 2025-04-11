@@ -480,7 +480,7 @@ export default function Index() {
                     style={{ width: animatedWidth, top: animatedYPos }}
                   >
                     <TextInput
-                      placeholder= {t("SearchEnterBox")}
+                      placeholder={t("SearchEnterBox")}
                       value={text}
                       onChangeText={setText}
                       onFocus={() => setSearchFocused(true)}

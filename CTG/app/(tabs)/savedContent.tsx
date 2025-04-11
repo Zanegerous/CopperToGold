@@ -5,6 +5,7 @@ import { getDatabase, ref as dbRef, onValue, Database, set, remove } from "fireb
 import { useEffect, useState } from "react";
 import Icon from 'react-native-vector-icons/FontAwesome'
 import WebView from "react-native-webview";
+import UploadDraftModal from "@/assets/modal/uploadDraft";
 
 
 interface EbayItem {
@@ -104,6 +105,7 @@ export default function SavedContent() {
         const soldPageLink = `https://www.ebay.com/sch/i.html?_nkw=${item.title}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`;
         const [resultModal, setResultModal] = useState(false);
         const [webViewModal, setWebViewModal] = useState(false);
+        const [draftModal, setDraftModal] = useState(false);
 
         return (
             <View className="bg-slate-600 flex-1 border-black rounded-md border-spacing-4 border-2 mb-4 mr-5 ml-5 w-2/5">
@@ -117,6 +119,7 @@ export default function SavedContent() {
                     <Text className="text-left text-l ml-1 text-white">Listed Price: ${item.price.value}</Text>
                     <Text className="text-left ml-1 text-white">Condition: {item.condition}</Text>
                 </TouchableOpacity>
+
 
 
                 <Modal visible={resultModal} animationType='fade' onRequestClose={() => { setResultModal(false) }}>
@@ -154,12 +157,23 @@ export default function SavedContent() {
                             />
                             <Text className="text-left text-3xl ml-4 mt-6 text-white">Listing Price: ${item.price.value}</Text>
                             <Text className="text-left text-3xl ml-4 text-white" >Condition: {item.condition}</Text>
-                            <TouchableOpacity onPress={() => setWebViewModal(true)} className="bg-orange-400 rounded-lg border-2 border-black justify-center w-1/2 absolute bottom-2 self-center h-16" >
-                                <Text className="text-center text-2xl justify-center text-white">See Sold Items</Text>
-                            </TouchableOpacity>
+
+                            <View className="flex-row bottom-4 absolute justify-center w-full">
+                                <TouchableOpacity onPress={() => setWebViewModal(true)} className="bg-orange-400 rounded-lg border-2 border-black justify-center w-[40%] bottom-2 self-center h-20 right-2" >
+                                    <Text className="text-center text-2xl justify-center text-white">See Sold Items</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    onPress={() => setDraftModal(true)}
+                                    className="bg-orange-400 rounded-lg border-2 border-black justify-center w-[40%] bottom-2 self-center h-20 left-2"
+                                >
+                                    <Text className="text-center text-xl justify-center text-white">List Similar</Text>
+                                </TouchableOpacity>
+                            </View>
+
                             <View className="w-full h-2/3 self-center p-5">
 
-                                <Modal visible={webViewModal} animationType='slide' onRequestClose={() => { setWebViewModal(false) }}>
+                                <Modal visible={webViewModal} animationType='slide' onRequestClose={() => { setDraftModal(false) }}>
                                     <View className="bg-blue-dark-100">
                                         <TouchableOpacity className=" self-left px-1 mt-2 mb-2 ml-2  "
                                             onPress={() => {
@@ -173,13 +187,22 @@ export default function SavedContent() {
                                         scalesPageToFit={true}
                                     />
                                 </Modal>
+
+
                             </View>
                         </View>
-
-
-
                     </SafeAreaView>
                 </Modal>
+
+                <UploadDraftModal
+                    visible={draftModal}
+                    onClose={() => setDraftModal(false)}
+                    itemName={item.title}
+                    itemPrice={item.price.value}
+                    itemCondition={item.condition}
+                    itemImage={item.image}
+                />
+
             </View>
         )
     }
