@@ -227,7 +227,7 @@ export default function Index() {
 
             <View className="flex-row absolute bottom-2 justify-center content-center w-full">
               <TouchableOpacity onPress={() => setSoldPageModal(true)} className="bg-orange-400 rounded-lg border-2 border-black justify-center w-2/5 self-center h-16" >
-                <Text className={"text-center text-2xl justify-center" + textSettings}>{t("")}</Text>
+                <Text className={"text-center text-2xl justify-center" + textSettings}>{t("HomeSoldOnWebView")}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => { setText(item.title); handleSearch(); setResultModal(false) }} className="bg-orange-400 m-2 rounded-lg border-2 border-black w-1/2 justify-center self-center h-16" >
                 <Text className={"text-center text-2xl" + textSettings}>{t("SearchThisItem")}</Text>

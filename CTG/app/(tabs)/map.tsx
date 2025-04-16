@@ -536,7 +536,8 @@ export default function App() {
 
       {/* Sale Creation Modal */}
       <Modal visible={createSaleModal} animationType='slide' onRequestClose={() => { setCreateSaleModal(false); }}>
-        <View className={`${defaultStyle.container}`}>
+        <SafeAreaView className={`${defaultStyle.container}`}>
+       
           <TouchableOpacity className={`${defaultStyle.button} bg-red-600 dark:bg-red-600 w-28 h-10`} onPress={ () => { 
             setCreateSaleModal(false)
             resetCreateSale()
@@ -545,8 +546,9 @@ export default function App() {
               Cancel
             </Text>
           </TouchableOpacity>
+          <ScrollView className="w-full p-1" contentContainerStyle={{ flexGrow: 1 }}>
           <KeyboardAvoidingView>
-            <ScrollView className="w-full p-1">
+            
               {/* Sale Name */}
               <View className="w-full mb-4">
                 <Text className={`${defaultStyle.title} text-center text-2xl text-blue-dark-200`}>
@@ -764,9 +766,9 @@ export default function App() {
                   </Text>
                 </TouchableOpacity>
               </View>
-            </ScrollView>
           </KeyboardAvoidingView>
-        </View>
+          </ScrollView>
+        </SafeAreaView>
       </Modal>
 
       {/* View to display data, hidden by default */}

@@ -36,13 +36,14 @@ export async function registerForNotificationsAsync() {
   return true;
 }
 
-async function scheduleNotification(seconds = 60): Promise<string> {
+async function scheduleNotification(seconds = 600): Promise<string> {
   return Notifications.scheduleNotificationAsync({
     content: {
       title: 'Reminder',
       body: 'Hey! Check out our app!',
     },
     trigger: { seconds },
+    repeat: false
   });
 }
 
@@ -83,20 +84,14 @@ export async function scheduleCustomNotification(title: string, body: string, se
 export default function NotificationSetup() {
   useEffect(() => {
     const notificationListener = Notifications.addNotificationReceivedListener(async () => {
-      console.log('Notification received, rescheduling another notification.');
-      scheduledNotificationId = await scheduleNotification(60);
+      scheduledNotificationId = await scheduleNotification(600);
     });
 
     const responseListener = Notifications.addNotificationResponseReceivedListener(async () => {
-      console.log('Notification tapped by user, scheduling next notification.');
-      scheduledNotificationId = await scheduleNotification(60);
     });
 
     const appStateListener = AppState.addEventListener('change', async (state) => {
-      if (state === 'active' && !scheduledNotificationId) {
-        console.log('App activated, ensuring notification scheduled.');
-        scheduledNotificationId = await scheduleNotification(60);
-      }
+
     });
 
     return () => {
