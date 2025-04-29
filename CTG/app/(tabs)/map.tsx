@@ -196,11 +196,14 @@ export default function App() {
         locationAddress += ", " + data.address.city;
         locationAddress += ", " + data.address.state;
         let geocode = await getLatLong(locationAddress);
+        if(data.address.zipCode){
+          locationAddress = locationAddress + " " + data.address.zipCode
+        }
         setMapItem({
           title: data.title,
           type: data.type,
           id: data.id,
-          address: locationAddress + " " + data.address.zip_code,
+          address: locationAddress,
           latlong: {
             latitude: geocode.lat,
             longitude: geocode.long
