@@ -7,14 +7,17 @@ import { getDatabase, ref as dbRef, set } from 'firebase/database';
 import axios from 'axios';
 import { getUserID } from '@/app/functionForApp/simpleFunctions';
 import { useTranslation } from "react-i18next";
-import { getUserLevel, updateTextScanAmmount } from '@/ebayApi';
+import { getUserLevel, callUpdateAmount } from '@/ebayApi';
+import { auth } from '@/app/firebaseconfig/firebase';
 
 
 const takePictureText = async (camera: { takePictureAsync: () => any } | null) => {
     try {
+        const user = auth.currentUser;
+        const userUID = user!.uid;
 
         if (camera != null) {
-            if (await updateTextScanAmmount()) {
+            if (await callUpdateAmount(user!.uid, 'allowedTextSearch')) {
                 const apiKey = ''; // Check discord for it, will need to be moved later to backend, fine here for now, just dont push to github with it
                 const photo = await camera.takePictureAsync();
                 const urifetch = await fetch(photo.uri);
