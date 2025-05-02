@@ -200,7 +200,7 @@ export default function App() {
           title: data.title,
           type: data.type,
           id: data.id,
-          address: locationAddress + " " + data.address.zip_code,
+          address: locationAddress + " " + data.address.zipCode,
           latlong: {
             latitude: geocode.lat,
             longitude: geocode.long
