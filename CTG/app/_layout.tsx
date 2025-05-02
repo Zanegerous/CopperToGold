@@ -5,7 +5,6 @@ import { TextScaleProvider } from "../app/context/TextScaleContext";
 import { useFonts } from "expo-font";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "./i18n";
-import NotificationSetup from "../app/context/NotificationSetup"; 
 
 export default function Layout() {
   const [fontsLoaded, error] = useFonts({
@@ -24,7 +23,6 @@ export default function Layout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
         <TextScaleProvider>
-          <NotificationSetup />
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="Pages/LoginPage" options={{ headerShown: false }} />
