@@ -18,7 +18,6 @@ const takePictureText = async (camera: { takePictureAsync: () => any } | null) =
 
         if (camera != null) {
             if (await callUpdateAmount(user!.uid, 'allowedTextSearch')) {
-                const apiKey = ''; // Check discord for it, will need to be moved later to backend, fine here for now, just dont push to github with it
                 const photo = await camera.takePictureAsync();
                 const urifetch = await fetch(photo.uri);
                 const blob = await urifetch.blob();
@@ -29,15 +28,20 @@ const takePictureText = async (camera: { takePictureAsync: () => any } | null) =
                 const imageRef = storageRef(storage, folderLocation);
                 await uploadBytes(imageRef, blob);
                 const firebaseUrl = await getDownloadURL(imageRef);
-                const endpointUrl = `https://api.apilayer.com/image_to_text/url?url=${encodeURIComponent(firebaseUrl)}`;
 
-                const response = await axios.get(endpointUrl, {
-                    headers: {
-                        apiKey: apiKey,
-                    },
-                });
 
-                const text = response.data.all_text;
+                const response = await axios.post(
+                    'https://extracttextfromimage-5ezxsoqfna-uc.a.run.app',
+                    { firebaseUrl },
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${userUID}`,
+                            'Content-Type': 'application/json',
+                        },
+                    }
+                );
+
+                const text = await response.data.text;
 
                 // remove it once done.
                 await deleteObject(imageRef);

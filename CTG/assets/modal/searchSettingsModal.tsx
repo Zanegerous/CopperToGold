@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { useTextScale } from '@/app/context/TextScaleContext';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { Picker } from '@react-native-picker/picker';
+import { useTheme } from '@/app/context/ThemeContext';
 
 interface SearchSettingsModalProps {
   settingModal: boolean;
@@ -40,6 +41,8 @@ const SearchSettingsModal: React.FC<SearchSettingsModalProps> = ({
 }) => {
   const { fontScale } = useTextScale();
   const scale = (baseSize: number) => baseSize * fontScale;
+  const { isDarkMode } = useTheme();
+
 
   const itemConditionOptions = [
     { label: 'All', value: 'all' },
@@ -53,14 +56,15 @@ const SearchSettingsModal: React.FC<SearchSettingsModalProps> = ({
     trackColor: { false: "#767577", true: "#81b0ff" },
     thumbColor: "#e28743",
   };
-  const settingWrapper = "flex-row items-center justify-between w-11/12 max-w-md h-14 px-4 self-center bg-blue-dark-200 rounded-lg border-2 mt-2";
-  const buttonText = "text-white text-base font-medium";
-  const switchWrapper = "w-36 h-12 bg-white flex-row items-center justify-center p-2 rounded-lg border-2";
+  const settingWrapper = `flex-row items-center justify-between w-11/12 max-w-md h-14 px-4 self-center rounded-lg border-2 mt-2 ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-blue-dark-200 border-blue-300'}`;
+  const buttonText = `text-base font-medium ${isDarkMode ? 'text-white' : 'text-white'}`;
+  const switchWrapper = `w-36 h-12 flex-row items-center justify-center p-2 rounded-lg border-2 ${isDarkMode ? 'bg-gray-700 border-gray-500' : 'bg-white border-gray-300'}`;
+
 
   return (
     <Modal visible={settingModal} transparent={true} animationType={'fade'} onRequestClose={() => { setSettingModal(false) }}>
       <View className="flex-1 justify-center items-center bg-black/50">
-        <View className="w-3/4 bg-slate-600 border-4 rounded-2xl p-4 max-h-[90%]">
+        <View className={`w-full border-4 rounded-2xl p-4 max-h-[90%] ${isDarkMode ? 'bg-gray-800' : 'bg-slate-600'}`}>
 
           <TouchableOpacity onPress={() => setSettingModal(false)} className="w-12">
             <Icon name="times-circle" size={40} color="red" className="m-1" />
@@ -100,7 +104,12 @@ const SearchSettingsModal: React.FC<SearchSettingsModalProps> = ({
           {/* Item Condition Dropdown */}
           <View className={settingWrapper}>
             <Text style={{ fontSize: scale(16) }} className={buttonText}>
-              Item Condition: {itemCondition === 'all' ? 'All' : itemCondition === 'new' ? 'New' : 'Used'}
+              Item Condition: {
+                itemCondition === 'all' ? 'All' :
+                  itemCondition === '1000' ? 'New' :
+                    itemCondition === '3000' ? 'Used' :
+                      itemCondition === '7000' ? 'Parts' : 'All'
+              }
             </Text>
             <Picker
               selectedValue={itemCondition}

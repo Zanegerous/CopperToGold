@@ -12,11 +12,13 @@ import * as logger from "firebase-functions/logger";
 import axios from "axios";
 import * as admin from "firebase-admin";
 import { onSchedule } from "firebase-functions/scheduler";
+import { defineSecret } from "firebase-functions/params";
 
 admin.initializeApp();
 const db = admin.database();
 const CID = "";
 const CSe = "";
+const imageAPIKey = defineSecret('IMAGE_TO_TEXT_APIKEY');
 
 
 // Start writing functions
@@ -165,4 +167,27 @@ export const resetUserLimits = onSchedule("every day 00:00", async () => {
     await db.ref().update(updates);
 });
 
+export const extractTextFromImage = onRequest(
+    { secrets: [imageAPIKey] }, // get the secret key from firebase
+    async (req, res) => {
+        const { firebaseUrl } = req.body;
+        try {
+            const apiKey = process.env.IMAGE_TO_TEXT_APIKEY;
 
+            const response = await axios.get(
+                `https://api.apilayer.com/image_to_text/url?url=${encodeURIComponent(firebaseUrl)}`,
+                {
+                    headers: {
+                        apiKey,
+                    },
+                }
+            );
+
+            const text = response.data.all_text;
+            res.status(200).send({ text });
+        } catch (error: any) {
+            console.error('Failed:', error);
+            res.status(500).send('Failed to process image');
+        }
+    }
+);
