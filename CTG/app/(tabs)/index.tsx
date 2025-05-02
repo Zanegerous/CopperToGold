@@ -17,7 +17,7 @@ import { Redirect } from "expo-router";
 import WebView from "react-native-webview";
 import { useTranslation } from "react-i18next";
 import { auth } from "../firebaseconfig/firebase";
-import { Database, ref as dbRef, getDatabase, remove, set } from 'firebase/database'
+import { Database, ref as dbRef, get, getDatabase, remove, set } from 'firebase/database'
 import { onAuthStateChanged, User } from "firebase/auth";
 import { useTextScale } from "../context/TextScaleContext";
 import { loginWithEbay } from "@/ebayConfig";
@@ -36,6 +36,8 @@ interface EbayItem {
 // Keep the splash screen visible while we fetch the auth status
 SplashScreen.preventAutoHideAsync();
 
+
+
 export default function Index() {
   // Permissions
   const [permission, requestPermission] = useCameraPermissions();
@@ -53,8 +55,12 @@ export default function Index() {
   const [historyVisible, setHistoryVisible] = useState(false);
 
   // Settings
+  const [viewSoldItemSetting, toggleViewSoldItemSetting] = useState(true);
   const [auctionSetting, toggleAuctionSetting] = useState(false);
-  const [usedItemSetting, toggleUsedItemSetting] = useState(false);
+  const [minMaxSetting, toggleMinMaxSetting] = useState(false);
+  const [itemCondition, setItemCondition] = useState('all'); // Default to 'all'
+  const [minPrice, setMinPrice] = useState("0");
+  const [maxPrice, setMaxPrice] = useState("1000");
   const [settingModal, setSettingModal] = useState(false);
 
   // Search Manager
@@ -107,6 +113,20 @@ export default function Index() {
   useEffect(() => {
     if (!loading) SplashScreen.hide();
   }, [loading]);
+
+  // gets history on load
+  useEffect(() => {
+    const loadHistory = async () => {
+      const historyRef = dbRef(database, `users/${userUID}/history`);
+      const snapshot = await get(historyRef);
+      if (snapshot.exists()) {
+        setHistory(snapshot.val());
+      } else {
+        setHistory([]);
+      }
+    };
+    loadHistory();
+  }, [userUID]);
 
   if (!permission) {
     return <View />;
@@ -162,10 +182,32 @@ export default function Index() {
 
   }
 
+  const buildEbayQuery = (item: EbayItem) => {
+    let query = `https://www.ebay.com/sch/i.html?_nkw=${item.title}`;
+
+    if (viewSoldItemSetting) {
+      query += '&LH_Sold=1&LH_Complete=1';
+    }
+
+    if (auctionSetting) {
+      query += '&LH_Auction=1';
+    }
+
+    if (itemCondition && itemCondition != 'all') {
+      query += `&LH_ItemCondition=${itemCondition}`;
+    }
+
+    if (minMaxSetting) {
+      query += `&_udlo=${minPrice}&_udhi=${maxPrice}`;
+    }
+
+    return query;
+  };
+
   // React Component that holds a modal with item information.
   const RenderResultItem = ({ item }: { item: EbayItem }) => {
     const [resultModal, setResultModal] = useState(false);
-    const soldPageLink = `https://www.ebay.com/sch/i.html?_nkw=${item.title}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`
+    const soldPageLink = buildEbayQuery(item);
     const [saveState, setSaveState] = useState(false);
     const [soldPageModal, setSoldPageModal] = useState(false);
     const textSettings = ' color-white'; // space needed at start
@@ -273,19 +315,6 @@ export default function Index() {
     );
   };
 
-  const searchAutofill = ({ item }: { item: string }) => {
-    //do autofill stuffs
-    return (
-      <TouchableOpacity
-        onPress={() => {
-          setText(item);
-        }}
-        className="bg-gray-300/70 border-2 rounded-md"
-      >
-        <Text style={{ fontSize: scale(14), textAlign: "center" }}>{"Lego"}</Text>
-      </TouchableOpacity>
-    )
-  }
 
   const getAvgPrice = (list: EbayItem[] | null): number => {
     if (list == null || list.length == 0) {
@@ -355,7 +384,28 @@ export default function Index() {
     }
   };
 
+  const handleHistory = async () => {
+    const historyRef = dbRef(database, `users/${userUID}/history`);
+
+    try {
+      const snapshot = await get(historyRef);
+      const currentHistory: string[] = snapshot.exists() ? snapshot.val() : [];
+      const filtered = currentHistory.filter(item => item !== text); // see if it already is in histroy
+      const updatedHistory = [text, ...filtered].slice(0, 10); // sets/moves it to the front
+
+      await set(historyRef, updatedHistory);
+      setHistory(updatedHistory);
+
+      // console.log("History updated:", updatedHistory);
+    } catch (error) {
+      console.error("Failed to update history:", error);
+    } finally {
+      // console.log("Testing");
+    }
+  };
+
   // logic to handle searching from the text
+
   const handleSearch = () => {
     if (text === '' || text === null) {
       alert("Must Enter Search");
@@ -373,10 +423,7 @@ export default function Index() {
     setMatchingItems(matching);
   };
 
-  const handleHistory = () => {
-    const cleanHistor = history.filter(item => item != text);
-    setHistory([text, ...cleanHistor.slice(0, 9)]);
-  };
+
 
   // Animation for opening search bar
   const handleSearchOpen = () => {
@@ -496,17 +543,6 @@ export default function Index() {
                       ref={inputRef}
                       style={{ fontSize: scale(16) }}
                     />
-                    {!historyVisible || history.length == 0 ? (
-                      <View className="bg-slate-800 border-2 rounded-lg mt-1 h-32">
-                        <TouchableOpacity style={{ backgroundColor: "white", borderColor: "#CECECE", borderWidth: 1, width: "95%" }}>
-                          <Text style={{ padding: 10, fontSize: 17 }}>
-                            Test
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    ) : (
-                      <View />
-                    )}
                     {/* History list */}
                     {historyVisible && history.length >= 1 ? (
                       <View className="bg-slate-800 border-2 rounded-lg mt-1 h-32">
@@ -576,12 +612,20 @@ export default function Index() {
 
           {/* Settings Screen */}
           <SearchSettingsModal
-            settingModal={settingModal} // Pass the visibility state
-            setSettingModal={setSettingModal} // Pass the setter function to close the modal
-            auctionSetting={auctionSetting} // Pass auction setting state
-            toggleAuctionSetting={toggleAuctionSetting} // Pass auction toggle function
-            usedItemSetting={usedItemSetting} // Pass used item setting state
-            toggleUsedItemSetting={toggleUsedItemSetting} // Pass used item toggle function
+            settingModal={settingModal}
+            setSettingModal={setSettingModal}
+            viewSoldItemSetting={viewSoldItemSetting}
+            toggleViewSoldItemSetting={toggleViewSoldItemSetting}
+            auctionSetting={auctionSetting}
+            toggleAuctionSetting={toggleAuctionSetting}
+            itemCondition={itemCondition}
+            setItemCondition={setItemCondition}
+            minMaxSetting={minMaxSetting}
+            toggleMinMaxSetting={toggleMinMaxSetting}
+            minPrice={minPrice}
+            setMinPrice={setMinPrice}
+            maxPrice={maxPrice}
+            setMaxPrice={setMaxPrice}
           />
 
           {/* Search View Modal, cant move due to complexity*/}
