@@ -1,4 +1,3 @@
-// Settings.tsx
 import React, { useState, useEffect } from "react";
 import { View, Text, Switch, StyleSheet, TouchableOpacity, Alert, Modal } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
@@ -8,7 +7,6 @@ import { useTextScale } from "../context/TextScaleContext";
 import { auth } from "../firebaseconfig/firebase";
 import { useRouter } from "expo-router";
 import i18n from "../i18n";
-// Import our revised notification functions from NotificationSetup.tsx
 import { enableNotifications, disableNotifications } from "../context/NotificationSetup";
 
 type FontScaleOption = {

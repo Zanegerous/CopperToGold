@@ -1,28 +1,25 @@
 import React, { useState, useEffect } from "react";
-import {
-  SafeAreaView,
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  ActivityIndicator,
-  Modal,
-  TouchableOpacity, // Using react-native's TouchableOpacity
-} from "react-native";
+import {SafeAreaView,View,Text,Image,StyleSheet,ActivityIndicator,Modal,TouchableOpacity,Alert,TextInput,} from "react-native";
 import DeckSwiper from "react-native-deck-swiper";
 import { useTranslation } from "react-i18next";
 import { searchEbay } from "@/ebayApi";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { WebView } from "react-native-webview";
+
 import BoloPageModal from "@/assets/modal/BoloPageModal";
 import BoloHistoryModal from "@/assets/modal/BoloHistoryModal";
 
-interface EbayItem {
+import { auth } from "../firebaseconfig/firebase";
+import { getDatabase, ref, push, onValue, remove } from "firebase/database";
+
+export interface EbayItem {
   id: string;
   title: string;
   price: { value: string; currency: string } | string;
   condition: string;
   image: string;
+  listingUrl?: string;
+  timestamp?: number;
 }
 
 export default function Bolo() {
@@ -36,7 +33,9 @@ export default function Bolo() {
   const [listingModalVisible, setListingModalVisible] = useState(false);
   const [listingUrl, setListingUrl] = useState("");
 
+  const [savedItems, setSavedItems] = useState<EbayItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const categories = [
     { label: "Technology", value: "technology" },
@@ -46,7 +45,7 @@ export default function Bolo() {
     { label: "Collectibles", value: "collectibles" },
   ];
 
-  const fetchData = () => {
+  const fetchData = (manualQuery?: string) => {
     setLoading(true);
     setCardIndex(0);
 
@@ -57,24 +56,17 @@ export default function Bolo() {
       antiques: ["antique vase", "antique furniture", "antique clock"],
       collectibles: ["coins", "stamps", "sports memorabilia", "trading cards"],
     };
-
     const defaultQueries = ["vintage camera", "retro radio", "classic watch"];
     const queries = selectedCategory ? categoryQueries[selectedCategory] : defaultQueries;
-    const query = queries[Math.floor(Math.random() * queries.length)];
+    const queryText = manualQuery || queries[Math.floor(Math.random() * queries.length)];
 
-    console.log(
-      `Fetching eBay data with query '${query}' from category '${
-        selectedCategory || "default"
-      }'.`
-    );
-
-    searchEbay(query)
-      .then((data: EbayItem[]) => {
+    searchEbay(queryText)
+      .then((data) => {
         setItems(data);
         setLoading(false);
       })
-      .catch((error) => {
-        console.error("Error fetching eBay data:", error);
+      .catch((err) => {
+        console.error("eBay fetch error:", err);
         setLoading(false);
       });
   };
@@ -83,10 +75,54 @@ export default function Bolo() {
     fetchData();
   }, [selectedCategory]);
 
-  // Debug the visibility state of history modal.
   useEffect(() => {
-    console.log("History modal visible:", historyModalVisible);
-  }, [historyModalVisible]);
+    const user = auth.currentUser;
+    if (!user) return;
+    const db = getDatabase();
+    const histRef = ref(db, `users/${user.uid}/history`);
+
+    const unsubscribe = onValue(histRef, (snapshot) => {
+      const arr: EbayItem[] = [];
+      snapshot.forEach((child) => {
+        const val = child.val() as Omit<EbayItem, "id">;
+        arr.push({ id: child.key as string, ...val });
+      });
+      arr.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+      setSavedItems(arr);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleSwipeRight = (item: EbayItem) => {
+    const user = auth.currentUser;
+    if (!user) return console.warn("Not logged in");
+
+    const db = getDatabase();
+    const histRef = ref(db, `users/${user.uid}/history`);
+
+    const data = {
+      title: item.title,
+      price: item.price,
+      condition: item.condition ?? "",
+      image: item.image,
+      listingUrl,
+      timestamp: Date.now(),
+    };
+
+    push(histRef, data).catch((err) => console.error("RTDB write error:", err));
+  };
+
+  const handleDelete = (item: EbayItem) => {
+    const user = auth.currentUser;
+    if (!user) return console.warn("Not logged in");
+
+    const db = getDatabase();
+    const itemRef = ref(db, `users/${user.uid}/history/${item.id}`);
+    remove(itemRef).catch((err) => console.error("RTDB delete error:", err));
+
+    setSavedItems((curr) => curr.filter((i) => i.id !== item.id));
+  };
 
   if (loading) {
     return (
@@ -99,17 +135,48 @@ export default function Bolo() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={{ flex: 1, width: "100%" }}>
+        {/* Header */}
         <View style={styles.headerRow}>
           <Text style={styles.header}>{t("")}</Text>
-          <TouchableOpacity onPress={() => setSettingModal(true)} style={{ zIndex: 10 }}>
-            <Icon name="gear" size={50} color="darkgrey" />
+          <TouchableOpacity onPress={() => setSettingModal(true)}>
+            <Icon name="gear" size={30} color="darkgrey" />
           </TouchableOpacity>
         </View>
 
+        {/* Search Bar */}
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search for items..."
+          placeholderTextColor="#aaa"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onSubmitEditing={() => fetchData(searchQuery)}
+          returnKeyType="search"
+          blurOnSubmit={true}
+        />
+
+        {/* DeckSwiper */}
         <DeckSwiper
           cards={items}
           cardIndex={cardIndex}
-          onSwiped={(index) => setCardIndex(index + 1)}
+          onSwiped={(i) => setCardIndex(i + 1)}
+          onSwipedRight={(i) =>
+            Alert.alert(
+              "Confirm",
+              "Add this item to history?",
+              [
+                { text: "No", onPress: () => setCardIndex(i), style: "cancel" },
+                {
+                  text: "Yes",
+                  onPress: () => {
+                    handleSwipeRight(items[i]);
+                    setCardIndex(i + 1);
+                  },
+                },
+              ],
+              { cancelable: false }
+            )
+          }
           renderCard={(item) =>
             item && (
               <View style={styles.card}>
@@ -122,9 +189,9 @@ export default function Bolo() {
                 <TouchableOpacity
                   style={styles.viewListingButton}
                   onPress={() => {
-                    const encodedTitle = encodeURIComponent(item.title);
+                    const encoded = encodeURIComponent(item.title);
                     setListingUrl(
-                      `https://www.ebay.com/sch/i.html?_nkw=${encodedTitle}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`
+                      `https://www.ebay.com/sch/i.html?_nkw=${encoded}&_sacat=0&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`
                     );
                     setListingModalVisible(true);
                   }}
@@ -138,14 +205,8 @@ export default function Bolo() {
           stackSize={3}
         />
 
-        {/* History Button (ALWAYS ON TOP) */}
-        <TouchableOpacity
-          style={styles.historyButton}
-          onPress={() => {
-            console.log("History button clicked");
-            setHistoryModalVisible(true);
-          }}
-        >
+        {/* History Button */}
+        <TouchableOpacity style={styles.historyButton} onPress={() => setHistoryModalVisible(true)}>
           <Text style={styles.historyButtonText}>History</Text>
         </TouchableOpacity>
       </View>
@@ -155,8 +216,8 @@ export default function Bolo() {
         settingModal={settingModal}
         setSettingModal={setSettingModal}
         selectedCategory={selectedCategory}
-        setSelectedCategory={(category) => {
-          setSelectedCategory(category);
+        setSelectedCategory={(cat) => {
+          setSelectedCategory(cat);
           setSettingModal(false);
         }}
         categories={categories}
@@ -166,9 +227,18 @@ export default function Bolo() {
       <BoloHistoryModal
         historyModal={historyModalVisible}
         setHistoryModal={setHistoryModalVisible}
+        savedItems={savedItems}
+        onItemPress={(item) => {
+          if (item.listingUrl) {
+            setListingUrl(item.listingUrl);
+            setListingModalVisible(true);
+            setHistoryModalVisible(false);
+          }
+        }}
+        onItemDelete={handleDelete}
       />
 
-      {/* WebView Modal */}
+      {/* Listing Modal */}
       <Modal
         visible={listingModalVisible}
         animationType="slide"
@@ -193,7 +263,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#222",
     alignItems: "center",
-    justifyContent: "center",
     paddingHorizontal: 20,
   },
   headerRow: {
@@ -208,6 +277,16 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#fff",
   },
+  searchInput: {
+    backgroundColor: "#333",
+    color: "#fff",
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 4,
+    marginBottom: 10,
+    width: "100%",
+    bottom: 14
+  },
   card: {
     width: 320,
     height: 420,
@@ -215,10 +294,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
     elevation: 5,
     marginVertical: 10,
     alignSelf: "center",
@@ -232,7 +307,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 5,
     textAlign: "center",
   },
   detail: {
@@ -278,5 +352,3 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
-
-export default Bolo;
