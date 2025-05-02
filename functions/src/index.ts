@@ -11,11 +11,12 @@ import { onRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import axios from "axios";
 import * as admin from "firebase-admin";
+import { onSchedule } from "firebase-functions/scheduler";
 
 admin.initializeApp();
 const db = admin.database();
-const CID = "ColemanZ-browseap-PRD-7833b1855-9e455503";
-const CSe = "PRD-dec4f9a7857e-546b-4f51-b2c7-49ae";
+const CID = "";
+const CSe = "";
 
 
 // Start writing functions
@@ -97,4 +98,71 @@ export const tokenRefresh = onRequest(async (req, res) => {
         logger.info("Error refreshing token:", error);
         res.status(500).send("refresh token invalid, expired?");
     }
+
 });
+
+export const updateAmount = onRequest(async (req, res) => {
+    const { state } = req.query;  // Extract userID from query parameter 'state'
+    const userUID = state;  // The userID is passed as 'state' in the request
+    const { target } = req.query;  // Target can be 'allowedQuery' or 'allowedTextSearch'
+
+    // if its a target
+    if (target !== "allowedQuery" && target !== "allowedTextSearch") {
+        res.status(400).send("Invalid target specified.");
+        return;  // Make sure to stop execution after sending the response
+    }
+
+    const availableRef = db.ref(`users/${userUID}/Account`);  // Reference to the user's account in Firebase
+
+    try {
+        const snapshot = await availableRef.get();
+
+        // If no data exists, initialize the user with the default values, only runs if user isnt set up, only for previous accounts
+        if (!snapshot.exists()) {
+            await availableRef.set({
+                securityLevel: 'user',  // Set default security level as 'user'
+                allowedQuery: 20,
+                allowedTextSearch: 20
+            });
+            res.status(200).send("User initialized with default values.");
+            return;  // Ensure no further execution after sending response
+        }
+
+        const currentValue = snapshot.val()[target as "allowedQuery" | "allowedTextSearch"];  // Type assertion
+
+        // Ensure the query count is greater than 0 before decrementing
+        if (currentValue <= 0) {
+            res.status(400).send("Insufficient calls remaining.");
+            return;  // Stop execution after sending response
+        }
+
+        // reduce count by 1
+        await availableRef.update({
+            [target]: currentValue - 1
+        });
+
+        res.status(200).send(`${target} updated successfully.`);
+    } catch (error) {
+        res.status(500).send("Failed to update call amount.");
+    }
+});
+
+export const resetUserLimits = onSchedule("every day 00:00", async () => {
+    const usersRef = db.ref("users");
+    const snapshot = await usersRef.get();
+
+    if (!snapshot.exists()) return;
+
+    const updates: Record<string, any> = {};
+
+    snapshot.forEach(child => {
+        // refreshes allowed calls daily at midnight
+        const uid = child.key;
+        updates[`users/${uid}/Account/allowedQuery`] = 20;  // general searches
+        updates[`users/${uid}/Account/allowedTextSearch`] = 20; // text scans
+    });
+
+    await db.ref().update(updates);
+});
+
+
