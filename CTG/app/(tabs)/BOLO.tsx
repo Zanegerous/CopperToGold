@@ -264,6 +264,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#222",
     alignItems: "center",
     paddingHorizontal: 20,
+    
   },
   headerRow: {
     width: "100%",
@@ -285,7 +286,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 10,
     width: "100%",
-    bottom: 14
+    bottom: 5
   },
   card: {
     width: 320,
@@ -297,6 +298,8 @@ const styles = StyleSheet.create({
     elevation: 5,
     marginVertical: 10,
     alignSelf: "center",
+    top:60,
+    right:25
   },
   image: {
     width: 300,
