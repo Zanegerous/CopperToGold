@@ -2,7 +2,7 @@ import axios from "axios";
 import { ebayConfig, loginWithEbay } from "./ebayConfig";
 import { ref as dbRef, getDatabase, get, remove, set, ref, update } from 'firebase/database'
 import { useState } from "react";
-import { auth } from "./app/firebaseconfig/firebase";
+import firebase, { auth, functions } from "./app/firebaseconfig/firebase";
 import { userSetup } from "./app/(auth)/register";
 import { Alert } from "react-native";
 
@@ -62,7 +62,7 @@ export const searchEbay = async (query: string): Promise<EbayItem[]> => {
   let searchOffset = 0;
   let retry = false;
 
-  if (await updateCallAmmount()) {
+  if (await callUpdateAmount(user!.uid, "allowedQuery")) {
     // retry's if refresh is an option
     for (let attempt = 1; attempt <= 2; attempt++) {
       let accessToken = await retrieveToken(user!.uid); // always grabs the latest token
@@ -144,7 +144,7 @@ export const searchEbayByImage = async (imageQuery: string): Promise<EbayItem[]>
   let searchOffset = 0;
   let retry = false;
 
-  if (await updateCallAmmount()) {
+  if (await callUpdateAmount(user!.uid, "allowedQuery")) {
     // retry's once if token is expired 
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
@@ -239,91 +239,27 @@ export const getUserLevel = async () => {
   }
 };
 
-export const updateCallAmmount = async () => {
-  const database = getDatabase();
-  const user = auth.currentUser;
-  const userUID = user!.uid;
-  const availableCalls = `users/${userUID}/Account/`;
-  const availableRef = dbRef(database, availableCalls);
-
+export const callUpdateAmount = async (userUID: string, target: 'allowedQuery' | 'allowedTextSearch') => {
   try {
-    const snapshot = await get(availableRef);
 
-    // This is entirely for existing accounts to be updated.
-    if (!snapshot.exists()) {
-      await userSetup(user, 'user');
+    const response = await axios.get('https://updateamount-5ezxsoqfna-uc.a.run.app', {
+      params: {
+        state: userUID,
+        target: target,
+      },
+    });
+
+    if (response.status == 200) {
+      console.log("Success")
       return true;
-    }
-
-
-    const query = snapshot.val().allowedQuery;
-    const userLevel = await getUserLevel();
-
-    // Admins dont have to worry about min or max calls
-    if (userLevel == 'admin') {
-      return true;
-    }
-
-    if (query <= 0) {
-      return false
     } else {
-      console.log(query);
-      await update(availableRef, {
-        allowedQuery: query - 1,
-      });
-      return true;
+      return false;
     }
-
   } catch (error) {
-    console.error(error);
-    throw new Error("Failed to fetch Update Query Ammount");
+    console.error('Error', error);
+    return false;  // Or handle specific error codes
   }
-}
-
-// I dont think these should be on the front end due to security, if someone really wanted they could just update their own account calls, or bypass it.
-// For proper implementation I would need to fully do this stuff on the back end, but due to how the app was built up it would take a long time to move
-// it over and its not a huge issue for a concept product 
-export const updateTextScanAmmount = async () => {
-  const database = getDatabase();
-  const user = auth.currentUser;
-  const userUID = user!.uid;
-  const availableCalls = `users/${userUID}/Account/`;
-  const availableRef = dbRef(database, availableCalls);
-
-  try {
-    const snapshot = await get(availableRef);
-    if (!snapshot.exists()) {
-      await userSetup(user, 'user');
-      return true;
-    }
-
-    const query = snapshot.val().allowedTextSearch;
-    const userLevel = await getUserLevel();
-
-    // Admins dont have to worry about min or max calls
-    if (userLevel == 'admin') {
-      return true;
-    }
-
-    if (query <= 0) {
-      return false
-    } else {
-      console.log(query);
-      await update(availableRef, {
-        allowedTextSearch: query - 1,
-      });
-      return true;
-    }
-
-  } catch (error) {
-    console.error(error);
-    throw new Error("Failed to fetch Update Text Scan Query Ammount");
-  }
-}
-
-export const generateImageURL = (image: any) => {
-
-}
+};
 
 export const uploadDraft = async (title: string, description: string, condition: string, price: string, sku: string, imageurl: string[], quantity: string) => {
   const database = getDatabase();
