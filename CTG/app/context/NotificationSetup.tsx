@@ -15,17 +15,9 @@ export const enableNotifications = async () => {
     await Notifications.requestPermissionsAsync();
     await Notifications.cancelAllScheduledNotificationsAsync();
 
-    // Send one immediately
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: 'Reminder',
-        body: 'Do not forget to check out our app!',
-      },
-      trigger: null,
-    });
-
-    // Start interval
-    intervalId = setInterval(async () => {
+    // Only start if not already started
+    if (!intervalId) {
+      // Send one immediately
       await Notifications.scheduleNotificationAsync({
         content: {
           title: 'Reminder',
@@ -33,9 +25,22 @@ export const enableNotifications = async () => {
         },
         trigger: null,
       });
-    }, 10000);
 
-    console.log("Notifications enabled (every 10 seconds)");
+      // Start interval
+      intervalId = setInterval(async () => {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: 'Reminder',
+            body: 'Do not forget to check out our app!',
+          },
+          trigger: null,
+        });
+      }, 10000);
+
+      console.log("Notifications enabled (every 10 seconds)");
+    } else {
+      console.log("Notifications already running.");
+    }
   } catch (error) {
     console.error("Error enabling notifications:", error);
   }
@@ -44,10 +49,12 @@ export const enableNotifications = async () => {
 export const disableNotifications = async () => {
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();
-    if (intervalId) {
+    if (intervalId !== null) {
       clearInterval(intervalId);
       intervalId = null;
       console.log("Notifications disabled");
+    } else {
+      console.log("Notifications already off.");
     }
   } catch (error) {
     console.error("Error disabling notifications:", error);
