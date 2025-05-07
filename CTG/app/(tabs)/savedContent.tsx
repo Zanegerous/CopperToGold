@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import Icon from 'react-native-vector-icons/FontAwesome'
 import WebView from "react-native-webview";
 import UploadDraftModal from "@/assets/modal/uploadDraft";
+import { useTheme } from "../context/ThemeContext";
 
 
 interface EbayItem {
@@ -25,6 +26,7 @@ export default function SavedContent() {
     const [user, setUser] = useState<User | null>(auth.currentUser);
     const [userUID, setUserUID] = useState<string | undefined>(user?.uid);
     const [database, setDatabase] = useState<Database>(getDatabase());
+    const { isDarkMode } = useTheme();
 
 
     const saveRef = dbRef(database, `users/${userUID}/savedItems`);
@@ -100,6 +102,35 @@ export default function SavedContent() {
 
     }
 
+    const darkModeStyles = {
+        container: 'bg-slate-600 border-black',
+        itemTitle: 'color-blue-900 bg-zinc-400',
+        listedPrice: 'text-white',
+        condition: 'text-white',
+        resultModalContainer: 'bg-blue-dark-200',
+        modalTitle: 'bg-blue-dark-100 border-black text-white',
+        modalListedPrice: 'text-white',
+        modalCondition: 'text-white',
+        modalButton: 'bg-orange-400 border-black',
+        modalButtonText: 'text-white'
+
+    };
+
+    const lightModeStyles = {
+        container: 'bg-blue-300 border-black',
+        itemTitle: 'text-blue-900 bg-blue-200',
+        listedPrice: 'text-black',
+        condition: 'text-black',
+        resultModalContainer: 'bg-blue-200',
+        modalTitle: 'bg-blue-100 border-black text-black',
+        modalListedPrice: 'text-black',
+        modalCondition: 'text-black',
+        modalButton: 'bg-orange-300 border-black',
+        modalButtonText: 'text-black font-semibold',
+    };
+
+    const themeStyles = isDarkMode ? darkModeStyles : lightModeStyles;
+
     const SavedItem = (item: EbayItem) => {
         const [saveState, setSaveState] = useState(true); // It is already sacved if its showing up here
         const soldPageLink = `https://www.ebay.com/sch/i.html?_nkw=${item.title}&_sacat=0&_from=R40&LH_Sold=1&LH_Complete=1&rt=nc&LH_BIN=1`;
@@ -108,22 +139,22 @@ export default function SavedContent() {
         const [draftModal, setDraftModal] = useState(false);
 
         return (
-            <View className="bg-slate-600 flex-1 border-black rounded-md border-spacing-4 border-2 mb-4 mr-5 ml-5 w-2/5">
+            <View className={`flex-1 rounded-md border-spacing-4 border-2 mb-4 mr-5 ml-5 w-2/5 ${themeStyles.container}`}>
                 <TouchableOpacity onPress={() => setResultModal(true)} className="">
                     <Image
                         source={{ uri: item.image }}
                         className="h-48 m-1 rounded-lg"
                         resizeMode='contain'
                     />
-                    <Text className="text-center color-blue-900 font-semibold m-2 rounded-lg bg-zinc-400 text-sm">{item.title}</Text>
-                    <Text className="text-left text-l ml-1 text-white">Listed Price: ${item.price.value}</Text>
-                    <Text className="text-left ml-1 text-white">Condition: {item.condition}</Text>
+                    <Text className={`text-center font-semibold m-2 rounded-lg  text-sm ${themeStyles.itemTitle}`}>{item.title}</Text>
+                    <Text className={`text-left text-l ml-1 ${themeStyles.listedPrice}`}>Listed Price: ${item.price.value}</Text>
+                    <Text className={`text-left ml-1 ${themeStyles.condition}`}>Condition: {item.condition}</Text>
                 </TouchableOpacity>
 
 
 
                 <Modal visible={resultModal} animationType='fade' onRequestClose={() => { setResultModal(false) }}>
-                    <SafeAreaView className="bg-blue-dark-200 flex-1">
+                    <SafeAreaView className={`flex-1 ${themeStyles.resultModalContainer}`}>
                         <View className="flex-row justify-between items-center">
 
                             <TouchableOpacity className=" px-1 mt-4 ml-2  "
@@ -149,32 +180,32 @@ export default function SavedContent() {
 
                         </View>
                         <View className="flex-1">
-                            <Text className="text-center font-bold text-3xl bg-blue-dark-100 w-auto rounded-xl border-black border-2 mb-2 mt-2 text-white m-1">{item.title}</Text>
+                            <Text className={`text-center font-bold text-3xl w-auto rounded-xl border-2 mb-2 mt-2 m-1 ${themeStyles.modalTitle}`}>{item.title}</Text>
                             <Image
                                 source={{ uri: item.image }}
                                 className="w-11/12 h-1/2 m-1 rounded-lg self-center bg-slate-600"
                                 resizeMode='contain'
                             />
-                            <Text className="text-left text-3xl ml-4 mt-6 text-white">Listing Price: ${item.price.value}</Text>
-                            <Text className="text-left text-3xl ml-4 text-white" >Condition: {item.condition}</Text>
+                            <Text className={`text-left text-3xl ml-4 mt-6 ${themeStyles.modalListedPrice}`}>Listing Price: ${item.price.value}</Text>
+                            <Text className={`text-left text-3xl ml-4 ${themeStyles.modalCondition}`}>Condition: {item.condition}</Text>
 
                             <View className="flex-row bottom-4 absolute justify-center w-full">
-                                <TouchableOpacity onPress={() => setWebViewModal(true)} className="bg-orange-400 rounded-lg border-2 border-black justify-center w-[40%] bottom-2 self-center h-20 right-2" >
-                                    <Text className="text-center text-2xl justify-center text-white">See Sold Items</Text>
+                                <TouchableOpacity onPress={() => setWebViewModal(true)} className={`rounded-lg border-2  justify-center w-[80%] bottom-2 self-center h-20 right-2 ${themeStyles.modalButton}`} >
+                                    <Text className={`text-center text-2xl justify-center ${themeStyles.modalButtonText}`}>See Sold Items</Text>
                                 </TouchableOpacity>
 
-                                <TouchableOpacity
+                                {/* <TouchableOpacity
                                     onPress={() => setDraftModal(true)}
-                                    className="bg-orange-400 rounded-lg border-2 border-black justify-center w-[40%] bottom-2 self-center h-20 left-2"
+                                    className=bg-orange-400 rounded-lg border-2 border-black justify-center w-[40%] bottom-2 self-center h-20 left-2"
                                 >
                                     <Text className="text-center text-xl justify-center text-white">List Similar</Text>
-                                </TouchableOpacity>
+                                </TouchableOpacity> */}
                             </View>
 
                             <View className="w-full h-2/3 self-center p-5">
 
                                 <Modal visible={webViewModal} animationType='slide' onRequestClose={() => { setDraftModal(false) }}>
-                                    <View className="bg-blue-dark-100">
+                                    <View className={`${themeStyles.resultModalContainer}`}>
                                         <TouchableOpacity className=" self-left px-1 mt-2 mb-2 ml-2  "
                                             onPress={() => {
                                                 setWebViewModal(false)
@@ -194,23 +225,21 @@ export default function SavedContent() {
                     </SafeAreaView>
                 </Modal>
 
-                <UploadDraftModal
+                {/* <UploadDraftModal
                     visible={draftModal}
                     onClose={() => setDraftModal(false)}
                     itemName={item.title}
                     itemPrice={item.price.value}
                     itemCondition={item.condition}
                     itemImage={item.image}
-                />
+                /> */}
 
-            </View>
+            </View >
         )
     }
 
-
-
     return (
-        <SafeAreaView className="bg-blue-dark-100 flex-1">
+        <SafeAreaView className={`flex-1 ${themeStyles.resultModalContainer}`}>
             <FlatList
                 data={savedList}
                 renderItem={({ item }) => <SavedItem {...item} />}

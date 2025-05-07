@@ -24,7 +24,6 @@ export default function LoginPage() {
     const { success, user, message } = await handleLogin(email, password);
 
     if (success) {
-      Alert.alert(t("Success") || "Success", t("loggedInSuccess") || "Logged in successfully!");
       router.push("/");
     } else {
       Alert.alert(t("error") || "Error", message);

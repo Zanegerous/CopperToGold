@@ -8,6 +8,7 @@ import { auth } from "../firebaseconfig/firebase";
 import { useRouter } from "expo-router";
 import i18n from "../i18n";
 import { enableNotifications, disableNotifications } from "../context/NotificationSetup";
+import { loginWithEbay } from "@/ebayConfig";
 
 type FontScaleOption = {
   label: string;
@@ -73,8 +74,8 @@ const Settings: React.FC = () => {
       }
     };
     handleNotificationsToggle();
-  }, [notificationsDisabled]);  
-  
+  }, [notificationsDisabled]);
+
 
   const handleLogout = async () => {
     try {
@@ -125,7 +126,7 @@ const Settings: React.FC = () => {
       await enableNotifications();
     }
   };
-  
+
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? "#000" : "#003" }]}>
@@ -216,6 +217,13 @@ const Settings: React.FC = () => {
           placeholderStyle={{ color: isDarkMode ? "#ccc" : "#888" }}
         />
       </View>
+
+      {/* Logout Button */}
+      <TouchableOpacity style={[styles.logoutButton, { backgroundColor: "#ffd" }]} onPress={loginWithEbay}>
+        <Text style={[styles.logoutText, { color: "#000", fontSize: 16 * fontScale }]}>
+          {i18n.t("SettingsEbayLogin")}
+        </Text>
+      </TouchableOpacity>
 
       {/* Logout Button */}
       <TouchableOpacity style={[styles.logoutButton, { backgroundColor: "#f00" }]} onPress={handleLogout}>

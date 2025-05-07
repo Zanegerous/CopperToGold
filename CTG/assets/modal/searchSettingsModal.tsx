@@ -56,9 +56,11 @@ const SearchSettingsModal: React.FC<SearchSettingsModalProps> = ({
     trackColor: { false: "#767577", true: "#81b0ff" },
     thumbColor: "#e28743",
   };
-  const settingWrapper = `flex-row items-center justify-between w-11/12 max-w-md h-14 px-4 self-center rounded-lg border-2 mt-2 ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-blue-dark-200 border-blue-300'}`;
-  const buttonText = `text-base font-medium ${isDarkMode ? 'text-white' : 'text-white'}`;
-  const switchWrapper = `w-36 h-12 flex-row items-center justify-center p-2 rounded-lg border-2 ${isDarkMode ? 'bg-gray-700 border-gray-500' : 'bg-white border-gray-300'}`;
+
+  const settingWrapper = `flex-row items-center justify-between w-11/12 max-w-md h-14 px-4 self-center rounded-lg border-2 mt-2 ${isDarkMode ? 'bg-blue-dark-200 border-blue-300' : 'bg-gray-700 border-gray-600'}`;
+  const buttonText = `text-base font-medium ${isDarkMode ? 'text-white' : 'text-white'}`
+  const switchWrapper = `w-36 h-12 flex-row items-center justify-center p-2 rounded-lg border-2 ${isDarkMode ? 'bg-white border-gray-300' : 'bg-gray-700 border-gray-500'}`;
+
 
 
   return (

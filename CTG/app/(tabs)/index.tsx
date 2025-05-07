@@ -117,7 +117,7 @@ export default function Index() {
   // gets history on load
   useEffect(() => {
     const loadHistory = async () => {
-      const historyRef = dbRef(database, `users/${userUID}/history`);
+      const historyRef = dbRef(database, `users/${userUID}/searchHistory`);
       const snapshot = await get(historyRef);
       if (snapshot.exists()) {
         setHistory(snapshot.val());
@@ -222,133 +222,9 @@ export default function Index() {
   };
 
   // React Component that holds a modal with item information.
-  const RenderResultItem = ({ item }: { item: EbayItem }) => {
-    const [resultModal, setResultModal] = useState(false);
-    const soldPageLink = buildEbayQuery(item);
-    const [saveState, setSaveState] = useState(false);
-    const [soldPageModal, setSoldPageModal] = useState(false);
 
-    // Styling
-    const containerStyle = isDarkMode ? 'bg-gray-800' : 'bg-slate-600';
-    const textColor = isDarkMode ? 'text-white' : 'text-white';
-    const buttonBgColor = isDarkMode ? 'bg-orange-600' : 'bg-orange-400';
-    const modalBgColor = isDarkMode ? 'bg-gray-900' : 'bg-blue-dark-200';
-    const borderColor = isDarkMode ? 'border-gray-700' : 'border-black';
 
-    return (
-      <View className={`${containerStyle} flex-1 border-2 ${borderColor} rounded-md border-spacing-4 mb-4 mr-5 ml-5 w-[48%]`}>
-        <TouchableOpacity onPress={() => setResultModal(true)} className="w-full">
-          {/*This is the outside image*/}
-          <Image
-            source={{ uri: item.image }}
-            className="h-48 m-1 rounded-lg"
-            resizeMode='contain'
-          />
-          <Text className="text-center color-blue-900 font-semibold m-2 rounded-lg bg-zinc-400 text-sm">{item.title}</Text>
-          <Text className={`text-left text-l ml-1 ${textColor}`}>{t("PriceListed")}: ${item.price.value}</Text>
-          <Text className={`text-left ml-1 ${textColor}`}>{t("ItemConditioning")}: {item.condition}</Text>
-        </TouchableOpacity>
 
-        {/* Zoom up modal */}
-        <Modal visible={resultModal} onRequestClose={() => { setResultModal(false) }} animationType='fade'>
-          <View className={`${modalBgColor} flex-1`}>
-            <View className="flex-row justify-between items-center">
-              <TouchableOpacity className=" px-1 mt-4 ml-2  "
-                onPress={() => {
-                  setResultModal(false)
-                }}>
-                <Icon name={'arrow-circle-o-left'} color={isDarkMode ? 'darkorange' : 'orange'} size={50} />
-              </TouchableOpacity>
-
-              <TouchableOpacity onPress={() => {
-                if (saveState == false) {
-                  saveItem(item);
-                  setSaveState(true);
-                } else {
-                  deleteSavedItem(item);
-                  setSaveState(false);
-                }
-              }}
-                className="mt-4 mr-2 "
-              >
-                <Icon name={'star'} size={50} color={saveState ? 'yellow' : 'grey'} />
-              </TouchableOpacity>
-            </View>
-
-            <Text className={`text-center font-bold text-3xl ${modalBgColor} w-auto m-1 rounded-xl border-2 ${borderColor} mb-2 mt-2 ${textColor}`}>
-              {item.title}
-            </Text>
-
-            <Image
-              source={{ uri: item.image }}
-              className="w-11/12 h-1/2 m-1 rounded-lg self-center bg-slate-600"
-              resizeMode='contain'
-            />
-            <Text className={`text-left text-3xl ml-4 mt-6 ${textColor}`}>{t("PriceListing")}: ${item.price.value}</Text>
-            <Text className={`text-left text-3xl ml-4 ${textColor}`}>{t("ItemConditioning")}: {item.condition}</Text>
-
-            <View className="flex-row absolute bottom-2 justify-center w-full">
-              <TouchableOpacity
-                onPress={() => setSoldPageModal(true)}
-                className={`w-2/5 self-center h-16 ${buttonBgColor} rounded-lg border-2 ${borderColor}`}
-              >
-                <Text className={`text-center text-2xl justify-center ${textColor}`}>{t("HomeSoldOnWebView")}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => {
-                  setText(item.title);
-                  handleSearch();
-                  setResultModal(false);
-                }}
-                className={`m-2 w-1/2 self-center h-16 ${buttonBgColor} rounded-lg border-2 ${borderColor}`}
-              >
-                <Text className={`text-center text-2xl ${textColor}`}>{t("SearchThisItem")}</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View className="w-full h-2/3 self-center p-5">
-              <Modal visible={soldPageModal} animationType="slide" onRequestClose={() => setSoldPageModal(false)}>
-                <View className={`${modalBgColor}`}>
-                  <TouchableOpacity className=" self-left px-1 mt-2 mb-2 ml-2  "
-                    onPress={() => {
-                      setSoldPageModal(false)
-                    }}>
-                    <Icon name={'arrow-circle-o-left'} color={isDarkMode ? 'orange' : 'orange'} size={50} />
-                  </TouchableOpacity>
-                </View>
-                <WebView
-                  source={{ uri: soldPageLink }}
-                  scalesPageToFit={true}
-                  style={{
-                    backgroundColor: isDarkMode ? '#1f1f1f' : '#ffffff',
-                    flex: 1,
-                  }}
-                />
-              </Modal>
-            </View>
-
-          </View>
-
-        </Modal>
-      </View>
-    );
-  };
-
-  // Formatting for history to be output in history flatlist
-  // Render history for search history list
-  const renderHistory = ({ item }: { item: string }) => {
-    return (
-      <TouchableOpacity
-        onPress={() => {
-          setText(item);
-        }}
-        className={`border-2 rounded-md ${isDarkMode ? "bg-gray-500/70 border-grey" : "bg-gray-400/70 border-black"}`}
-      >
-        <Text style={{ fontSize: scale(14), textAlign: "center", color: isDarkMode ? "white" : "black", }}>{item}</Text>
-      </TouchableOpacity>
-    );
-  };
 
   const getAvgPrice = (list: EbayItem[] | null): number => {
     if (list == null || list.length == 0) {
@@ -419,11 +295,12 @@ export default function Index() {
   };
 
   const handleHistory = async () => {
-    const historyRef = dbRef(database, `users/${userUID}/history`);
+    const historyRef = dbRef(database, `users/${userUID}/searchHistory`);
 
     try {
       const snapshot = await get(historyRef);
-      const currentHistory: string[] = snapshot.exists() ? snapshot.val() : [];
+      const val = snapshot.exists() ? snapshot.val() : [];  // had to change this if history didnt exist
+      const currentHistory: string[] = Array.isArray(val) ? val : Object.values(val);
       const filtered = currentHistory.filter(item => item !== text); // see if it already is in histroy
       const updatedHistory = [text, ...filtered].slice(0, 10); // sets/moves it to the front
 
@@ -507,6 +384,169 @@ export default function Index() {
   };
 
 
+  const darkModeStyles = {
+    container: 'bg-blue-dark-200',
+    title_C: 'text-orange-600',
+    title_2: 'text-white',
+    title_G: 'text-yellow-300',
+    buttonBackground: 'bg-black font-bold',
+    buttonText: 'text-white',
+    searchInputFocused: 'border-blue-500 bg-blue-800 text-white',
+    searchInputBlurred: 'border-black bg-gray-300 text-white',
+    historyContainer: 'bg-slate-700 border-black',
+    resultContainer: 'bg-blue-dark-100',
+    resultInputFocused: 'border-blue-500 bg-blue-200 text-black',
+    resultInputBlurred: 'border-black bg-gray-300 text-black',
+    resultModalBG: 'bg-blue-700'
+  };
+
+  const lightModeStyles = {
+    container: 'bg-blue-200',
+    title_C: 'text-orange-400',
+    title_2: 'text-gray-500',
+    title_G: 'text-yellow-200',
+    buttonBackground: 'bg-gray-200',
+    buttonText: 'text-black font-bold',
+    searchInputFocused: 'border-black bg-teal-500/50 text-black font-bold',
+    searchInputBlurred: 'border-black bg-gray-300 text-black',
+    historyContainer: 'bg-slate-200 border-black',
+    resultContainer: 'bg-gray-300',
+    resultInputFocused: 'border-blue-500 bg-blue-200 text-black',
+    resultInputBlurred: 'border-black bg-gray-300 text-black',
+    resultModalBG: 'bg-blue-300'
+  };
+
+  const themeStyles = isDarkMode ? darkModeStyles : lightModeStyles;
+
+  const RenderResultItem = ({ item }: { item: EbayItem }) => {
+    const [resultModal, setResultModal] = useState(false);
+    const soldPageLink = buildEbayQuery(item);
+    const [saveState, setSaveState] = useState(false);
+    const [soldPageModal, setSoldPageModal] = useState(false);
+
+    // Styling, was done before new system
+    const containerStyle = isDarkMode ? 'bg-slate-600 border-black' : 'bg-blue-300 border-black';
+    const textColor = isDarkMode ? 'text-white' : 'text-black';
+    const buttonBgColor = isDarkMode ? 'bg-orange-400 border-black' : 'bg-orange-300 border-black';
+    const modalBgColor = isDarkMode ? 'bg-blue-dark-200' : 'bg-blue-200';
+    const TitleBgColor = isDarkMode ? 'bg-blue-dark-200' : 'bg-blue-400';
+    const borderColor = isDarkMode ? 'border-black' : 'border-gray-700';
+
+    return (
+      <View className={`${containerStyle} flex-1 border-2 ${borderColor} rounded-md border-spacing-4 mb-4 mr-5 ml-5 w-[48%]`}>
+        <TouchableOpacity onPress={() => setResultModal(true)} className="w-full">
+          {/*This is the outside image*/}
+          <Image
+            source={{ uri: item.image }}
+            className="h-48 m-1 rounded-lg"
+            resizeMode='contain'
+          />
+          <Text className="text-center color-blue-900 font-semibold m-2 rounded-lg bg-zinc-400 text-sm">{item.title}</Text>
+          <Text className={`text-left text-l ml-1 ${textColor}`}>{t("PriceListed")}: ${item.price.value}</Text>
+          <Text className={`text-left ml-1 ${textColor}`}>{t("ItemConditioning")}: {item.condition}</Text>
+        </TouchableOpacity>
+
+        {/* Zoom up modal */}
+        <Modal visible={resultModal} onRequestClose={() => { setResultModal(false) }} animationType='fade'>
+          <View className={`${modalBgColor} flex-1`}>
+            <View className="flex-row justify-between items-center">
+              <TouchableOpacity className=" px-1 mt-4 ml-2  "
+                onPress={() => {
+                  setResultModal(false)
+                }}>
+                <Icon name={'arrow-circle-o-left'} color={isDarkMode ? 'darkorange' : 'orange'} size={50} />
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => {
+                if (saveState == false) {
+                  saveItem(item);
+                  setSaveState(true);
+                } else {
+                  deleteSavedItem(item);
+                  setSaveState(false);
+                }
+              }}
+                className="mt-4 mr-2 "
+              >
+                <Icon name={'star'} size={50} color={saveState ? 'yellow' : 'grey'} />
+              </TouchableOpacity>
+            </View>
+
+            <Text className={`text-center font-bold text-3xl ${TitleBgColor} w-auto m-1 rounded-xl border-2 ${borderColor} mb-2 mt-2 ${textColor}`}>
+              {item.title}
+            </Text>
+
+            <Image
+              source={{ uri: item.image }}
+              className="w-11/12 h-1/2 m-1 rounded-lg self-center bg-slate-600"
+              resizeMode='contain'
+            />
+            <Text className={`text-left text-3xl ml-4 mt-6 ${textColor}`}>{t("PriceListing")}: ${item.price.value}</Text>
+            <Text className={`text-left text-3xl ml-4 ${textColor}`}>{t("ItemConditioning")}: {item.condition}</Text>
+
+            <View className="flex-row absolute bottom-2 justify-center w-full">
+              <TouchableOpacity
+                onPress={() => setSoldPageModal(true)}
+                className={`w-2/5 self-center h-16 ${buttonBgColor} rounded-lg border-2 ${borderColor}`}
+              >
+                <Text className={`text-center text-2xl justify-center ${textColor}`}>{t("HomeSoldOnWebView")}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setText(item.title);
+                  handleSearch();
+                  setResultModal(false);
+                }}
+                className={`m-2 w-1/2 self-center h-16 ${buttonBgColor} rounded-lg border-2 ${borderColor}`}
+              >
+                <Text className={`text-center text-2xl ${textColor}`}>{t("SearchThisItem")}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View className="w-full h-2/3 self-center p-5">
+              <Modal visible={soldPageModal} animationType="slide" onRequestClose={() => setSoldPageModal(false)}>
+                <View className={`${modalBgColor}`}>
+                  <TouchableOpacity className=" self-left px-1 mt-2 mb-2 ml-2  "
+                    onPress={() => {
+                      setSoldPageModal(false)
+                    }}>
+                    <Icon name={'arrow-circle-o-left'} color={isDarkMode ? 'orange' : 'orange'} size={50} />
+                  </TouchableOpacity>
+                </View>
+                <WebView
+                  source={{ uri: soldPageLink }}
+                  scalesPageToFit={true}
+                  style={{
+                    backgroundColor: isDarkMode ? '#1f1f1f' : '#ffffff',
+                    flex: 1,
+                  }}
+                />
+              </Modal>
+            </View>
+
+          </View>
+
+        </Modal>
+      </View>
+    );
+  };
+
+  // Formatting for history to be output in history flatlist
+  // Render history for search history list
+  const renderHistory = ({ item }: { item: string }) => {
+    return (
+      <TouchableOpacity
+        onPress={() => {
+          setText(item);
+        }}
+        className={`border-2 rounded-md ${isDarkMode ? "bg-gray-500/70 border-grey" : "bg-gray-400/70 border-black"}`}
+      >
+        <Text style={{ fontSize: scale(14), textAlign: "center", color: isDarkMode ? "white" : "black", }}>{item}</Text>
+      </TouchableOpacity>
+    );
+  };
+
   // Home Page
   if (!loading && user) {
     return (
@@ -517,7 +557,7 @@ export default function Index() {
           }
         }}
       >
-        <SafeAreaView className={`flex-1 w-screen h-screen items-center ${isDarkMode ? 'bg-black' : 'bg-blue-dark-200'}`}>
+        <SafeAreaView className={`flex-1 w-screen h-screen items-center ${themeStyles.container} `}>
           <StatusBar barStyle={"light-content"} className="bg-zinc-900" />
 
           {/* Settings Gear */}
@@ -534,17 +574,17 @@ export default function Index() {
           {/* Title */}
           <View className="flex-row items-center justify-center top-24 absolute">
             <Text
-              className={styles.TitleText.join(" ") + " text-orange-600"}
+              className={`text-9xl font-bold font-serif ${themeStyles.title_C}`}
             >
               C
             </Text>
             <Text
-              className={styles.TitleText.join(" ") + " text-white"}
+              className={`text-9xl font-bold font-serif ${themeStyles.title_2}`}
             >
               2
             </Text>
             <Text
-              className={styles.TitleText.join(" ") + " text-yellow-300"}
+              className={`text-9xl font-bold font-serif ${themeStyles.title_G}`}
             >
               G
             </Text>
@@ -569,19 +609,12 @@ export default function Index() {
                       placeholderTextColor={isDarkMode ? "#FFFFFF" : "#000000"}
                       ref={inputRef}
                       className={`w-full self-center border-2 rounded-2xl h-14 px-4
-                          ${searchFocused
-                          ? isDarkMode
-                            ? "bg-gray-700 border-white text-white"
-                            : "border-blue-500 bg-blue-200 text-black"
-                          : isDarkMode
-                            ? "border-gray-500 bg-gray-700 text-white"
-                            : "border-black bg-gray-300 text-black"
-                        }`}
+                        ${searchFocused ? themeStyles.searchInputFocused : themeStyles.searchInputBlurred}`}
                       style={{ fontSize: scale(16) }}
                     />
                     {/* History list */}
                     {historyVisible && history.length >= 1 ? (
-                      <View className={`border-2 rounded-lg mt-1 h-32 ${isDarkMode ? "bg-slate-800 border-gray-500" : "bg-slate-200 border-black"}`}>
+                      <View className={`border-2 rounded-lg mt-1 h-32 ${themeStyles.resultContainer}`}>
                         <FlatList
                           data={history}
                           renderItem={renderHistory}
@@ -613,21 +646,21 @@ export default function Index() {
               <View>
                 {/* Default Screen */}
                 <TouchableOpacity
-                  className="bg-white h-16 w-56 justify-center items-center mt-8 rounded-lg"
+                  className={`h-16 w-56 justify-center items-center mt-8 rounded-lg ${themeStyles.buttonBackground}`}
                   onPress={handleSearchOpen}
                 >
-                  <Text style={{ fontSize: scale(16) }} className="text-gray-600">
+                  <Text style={{ fontSize: scale(16) }} className={`${themeStyles.buttonText}`}>
                     {t("HomeSearchBox")}
                   </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  className="bg-white h-16 w-56 justify-center items-center mt-8 rounded-lg"
+                  className={`h-16 w-56 justify-center items-center mt-8 rounded-lg ${themeStyles.buttonBackground}`}
                   onPress={() => {
                     setCameraOpen(true);
                   }}
                 >
-                  <Text style={{ fontSize: scale(16) }} className="text-gray-600">
+                  <Text style={{ fontSize: scale(16) }} className={`${themeStyles.buttonText}`}>
                     {t("CameraBox")}
                   </Text>
                 </TouchableOpacity>
@@ -666,7 +699,7 @@ export default function Index() {
 
           {/* Search View Modal, cant move due to complexity*/}
           <Modal visible={searchResultModal} onRequestClose={() => { setSearchResultModal(false) }}>
-            <SafeAreaView className="h-full w-full bg-blue-dark">
+            <SafeAreaView className={`h-full w-full ${themeStyles.resultModalBG}`}>
               <View className="flex-row">
                 {/*Back Button that refreshes all states*/}
                 <TouchableOpacity className=" self-left px-1 mt-4 ml-2  "
@@ -681,7 +714,7 @@ export default function Index() {
                   <Icon name={'arrow-circle-o-left'} color={'orange'} size={50} />
                 </TouchableOpacity>
 
-                <Text className="self-center text-white font-bold text-2xl ">
+                <Text className={`self-center font-bold text-2xl ${isDarkMode ? 'text-white' : 'text-black'}`}>
                   {"\t"}{t("AveragePrice")}: ${getAvgPrice(matchingItems ? matchingItems : searchResults)} {"\n"}
                   {"\t"}{t("FoundItems")}: {(matchingItems ? matchingItems : searchResults)?.length}
                 </Text>
@@ -700,14 +733,7 @@ export default function Index() {
                   placeholderTextColor={isDarkMode ? "#FFFFFF" : "#000000"}
                   ref={inputRef}
                   className={`w-full self-center border-2 rounded-2xl h-14 px-4
-                      ${searchFocused
-                      ? isDarkMode
-                        ? "bg-gray-700 border-white text-white"
-                        : "border-blue-500 bg-blue-200 text-black"
-                      : isDarkMode
-                        ? "border-gray-500 bg-gray-500 text-white"
-                        : "border-black bg-gray-300 text-black"
-                    }`}
+                    ${searchFocused ? themeStyles.resultInputFocused : themeStyles.resultInputBlurred}`}
                   style={{ fontSize: scale(16) }}
                 />
 
@@ -744,7 +770,7 @@ export default function Index() {
                 )}
               </View>
 
-              <View className={`border-t-4 mt-2 rounded-m ${isDarkMode ? 'bg-black' : 'bg-blue-dark-200'}`}>
+              <View className={`border-t-4 mt-2 rounded-m ${themeStyles.container}`}>
                 {(searchResults || matchingItems) ? (
                   <FlatList
                     data={matchingItems ? matchingItems : searchResults}
@@ -763,13 +789,9 @@ export default function Index() {
                 )}
               </View>
 
-              <View className="absolute bottom-0 w-full bg-blue-dark py-4 z-20 border-black border-t-2">
-                <TouchableOpacity
-                  onPress={() => {
-                    setSearchWebViewState(true);
-                  }}
-                  className="self-center bg-orange py-2 px-8 rounded-xl">
-                  <Text className="text-white text-xl">{t("HomeSoldOnWebView")}</Text>
+              <View className={`absolute bottom-0 w-full py-4 z-20 border-black border-t-2 ${themeStyles.container}`}>
+                <TouchableOpacity className={`self-center py-2 px-8 rounded-xl ${themeStyles.buttonBackground}`}>
+                  <Text className={`text-xl ${themeStyles.buttonText}`}>{t("HomeSoldOnWebView")}</Text>
                 </TouchableOpacity>
               </View>
             </SafeAreaView>
@@ -823,17 +845,3 @@ export default function Index() {
     );
   }
 }
-
-const styles = {
-  BackgroundView: [
-    "flex-1",
-    "bg-blue-dark-100",
-    "w-screen",
-    "h-screen",
-    "items-center",
-  ],
-  TitleText: ["text-9xl", "font-bold", "font-serif"],
-  SearchButton: [],
-  ButtonText: [],
-  BackButton: [],
-};
