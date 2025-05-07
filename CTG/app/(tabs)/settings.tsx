@@ -22,14 +22,11 @@ type LanguageOption = {
 
 const Settings: React.FC = () => {
   const { isDarkMode, toggleDarkMode } = useTheme();
-  // notificationsDisabled: false means notifications are enabled.
-  // Set to false by default.
   const [notificationsDisabled, setNotificationsDisabled] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { fontScale, setFontScale } = useTextScale();
   const router = useRouter();
 
-  // Text scale picker state
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState<number>(fontScale);
   const [items, setItems] = useState<FontScaleOption[]>([
@@ -39,7 +36,6 @@ const Settings: React.FC = () => {
     { label: "X-Large", value: 1.5 },
   ]);
 
-  // Language picker state
   const [langOpen, setLangOpen] = useState(false);
   const [langValue, setLangValue] = useState("en");
   const [langItems, setLangItems] = useState<LanguageOption[]>([
@@ -47,7 +43,6 @@ const Settings: React.FC = () => {
     { label: i18n.t("spanishLabel"), value: "es" },
   ]);
 
-  // Update language items when language changes.
   useEffect(() => {
     const handleLanguageChanged = () => {
       setLangItems([
@@ -62,20 +57,18 @@ const Settings: React.FC = () => {
     };
   }, []);
 
-  // Schedule notifications when notifications should be enabled.
   useEffect(() => {
     const handleNotificationsToggle = async () => {
       if (!notificationsDisabled) {
-        console.log('Notifications enabled.');
+        console.log("Notifications enabled.");
         await enableNotifications();
       } else {
-        console.log('Notifications disabled.');
+        console.log("Notifications disabled.");
         await disableNotifications();
       }
     };
     handleNotificationsToggle();
   }, [notificationsDisabled]);
-
 
   const handleLogout = async () => {
     try {
@@ -101,13 +94,11 @@ const Settings: React.FC = () => {
     }
   };
 
-  // Handle font scale change.
   const handleSetValue = (selectedValue: number) => {
     setValue(selectedValue);
     setFontScale(selectedValue);
   };
 
-  // Handle language change.
   const handleSetLanguage = (selectedLang: string | ((prev: string) => string)) => {
     const lang = typeof selectedLang === "function" ? selectedLang(langValue) : selectedLang;
     console.log("Selected language:", lang);
@@ -115,29 +106,18 @@ const Settings: React.FC = () => {
     i18n.changeLanguage(lang);
   };
 
-  // Toggle notifications.
-  // newValue === true means "disable notifications"
-  // newValue === false means "enable repeating notifications every 60 sec"
-  const handleToggleNotifications = async (newValue: boolean) => {
+  const handleToggleNotifications = (newValue: boolean) => {
     setNotificationsDisabled(newValue);
-    if (newValue) {
-      await disableNotifications();
-    } else {
-      await enableNotifications();
-    }
   };
 
-
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? "#000" : "#003" }]}>
-      {/* Title */}
-      <Text style={[styles.title, { color: isDarkMode ? "#fff" : "#ddd", fontSize: 18 * fontScale }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? "#1e3a8a" : "#bfdbfe" }]}>
+      <Text style={[styles.title, { color: isDarkMode ? "#fff" : "#000000", fontSize: 18 * fontScale }]}>
         {i18n.t("settingsTitle")}
       </Text>
 
-      {/* Dark Mode Switch */}
       <View style={styles.switchContainer}>
-        <Text style={{ color: isDarkMode ? "#fff" : "#ddd", fontSize: 16 * fontScale }}>
+        <Text style={{ color: isDarkMode ? "#fff" : "#000000", fontSize: 16 * fontScale }}>
           {i18n.t("darkMode")}
         </Text>
         <Switch
@@ -148,9 +128,8 @@ const Settings: React.FC = () => {
         />
       </View>
 
-      {/* Notification Toggle */}
       <View style={styles.switchContainer}>
-        <Text style={{ color: isDarkMode ? "#fff" : "#ddd", fontSize: 16 * fontScale }}>
+        <Text style={{ color: isDarkMode ? "#fff" : "#000000", fontSize: 16 * fontScale }}>
           {i18n.t("notificationsToggle")}
         </Text>
         <Switch
@@ -161,9 +140,8 @@ const Settings: React.FC = () => {
         />
       </View>
 
-      {/* Text Size Picker */}
       <View style={[styles.pickerContainer, { marginBottom: 35 }]}>
-        <Text style={{ color: isDarkMode ? "#fff" : "#ddd", fontSize: 16 * fontScale, marginBottom: 8 }}>
+        <Text style={{ color: isDarkMode ? "#fff" : "#000000", fontSize: 16 * fontScale, marginBottom: 8 }}>
           {i18n.t("textSize")}
         </Text>
         <DropDownPicker
@@ -186,16 +164,8 @@ const Settings: React.FC = () => {
         />
       </View>
 
-      {/* Language Picker */}
       <View style={styles.pickerContainer}>
-        <Text
-          style={{
-            color: isDarkMode ? "#fff" : "#ddd",
-            fontSize: 16 * fontScale,
-            marginBottom: 8,
-            marginTop: 16,
-          }}
-        >
+        <Text style={{ color: isDarkMode ? "#fff" : "#000000", fontSize: 16 * fontScale, marginBottom: 8, marginTop: 16 }}>
           {i18n.t("language")}
         </Text>
         <DropDownPicker
@@ -218,41 +188,27 @@ const Settings: React.FC = () => {
         />
       </View>
 
-      {/* Logout Button */}
       <TouchableOpacity style={[styles.logoutButton, { backgroundColor: "#ffd" }]} onPress={loginWithEbay}>
         <Text style={[styles.logoutText, { color: "#000", fontSize: 16 * fontScale }]}>
           {i18n.t("SettingsEbayLogin")}
         </Text>
       </TouchableOpacity>
 
-      {/* Logout Button */}
       <TouchableOpacity style={[styles.logoutButton, { backgroundColor: "#f00" }]} onPress={handleLogout}>
         <Text style={[styles.logoutText, { color: "#fff", fontSize: 16 * fontScale }]}>
           {i18n.t("logout")}
         </Text>
       </TouchableOpacity>
 
-      {/* Delete Account */}
       <TouchableOpacity style={[styles.logoutButton, { backgroundColor: "#f00" }]} onPress={() => setIsModalOpen(true)}>
         <Text style={[styles.logoutText, { color: "#fff", fontSize: 16 * fontScale }]}>
           {i18n.t("deleteAccount")}
         </Text>
       </TouchableOpacity>
 
-      {/* Warning Modal */}
       <Modal visible={isModalOpen} transparent={true}>
         <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <View
-            style={{
-              flex: 1,
-              marginHorizontal: 20,
-              marginVertical: 150,
-              backgroundColor: "#fff",
-              borderRadius: 20,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
+          <View style={{ flex: 1, marginHorizontal: 20, marginVertical: 150, backgroundColor: "#fff", borderRadius: 20, alignItems: "center", justifyContent: "center" }}>
             <Text style={{ textAlign: "center", fontSize: 20 }}>
               {i18n.t("warningText")}
             </Text>
