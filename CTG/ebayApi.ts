@@ -55,7 +55,7 @@ interface EbayItem {
 
 // Function to search items on eBay
 export const searchEbay = async (query: string): Promise<EbayItem[]> => {
-  const DESIRED_ITEMS = 1000;
+  const DESIRED_ITEMS = 400;
   const SEARCH_LIMIT = 200; // must be under 200
   const user = auth.currentUser;
   let returnItems: EbayItem[] = [];
@@ -137,7 +137,7 @@ export const searchEbay = async (query: string): Promise<EbayItem[]> => {
 };
 
 export const searchEbayByImage = async (imageQuery: string): Promise<EbayItem[]> => {
-  const DESIRED_ITEMS = 1000;
+  const DESIRED_ITEMS = 400;
   const SEARCH_LIMIT = 200; // must be under 200
   const user = auth.currentUser;
   let returnItems: EbayItem[] = [];
