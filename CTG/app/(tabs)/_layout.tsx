@@ -8,10 +8,10 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: isDarkMode ? 'orange' : '#56494C',
-        tabBarActiveBackgroundColor: isDarkMode ? 'darkblue' : '#E4C5Af',
-        tabBarInactiveBackgroundColor: isDarkMode ? 'grey' : '#074f57',
-        tabBarInactiveTintColor: isDarkMode ? 'darkblue' : '#AFBFC0',
+        tabBarActiveTintColor: isDarkMode ? 'darkblue' : '#56494C',
+        tabBarActiveBackgroundColor: isDarkMode ? 'orange' : '#E4C5Af',
+        tabBarInactiveBackgroundColor: isDarkMode ? 'darkblue' : '#074f57',
+        tabBarInactiveTintColor: isDarkMode ? 'lightgrey' : '#AFBFC0',
       }}
     >
       <Tabs.Screen name="settings" options={{ headerShown: false, title: "", tabBarIcon: ({ color }) => <Icon name="gear" size={25} color={color} /> }} />
