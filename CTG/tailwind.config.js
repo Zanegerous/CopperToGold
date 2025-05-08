@@ -15,7 +15,8 @@ module.exports = {
         "blue-light": {
           DEFAULT: "#DAE0FB",
           100: "#B6C2F7",
-          200: "#889CF2"
+          200: "#889CF2",
+          300: "#bfdbfe"
         },
         "orange-neon": "#F98824"
       },
