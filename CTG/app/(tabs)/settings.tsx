@@ -111,7 +111,7 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? "#1e3a8a" : "#bfdbfe" }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? "#081449" : "#bfdbfe" }]}>
       <Text style={[styles.title, { color: isDarkMode ? "#fff" : "#000000", fontSize: 18 * fontScale }]}>
         {i18n.t("settingsTitle")}
       </Text>
@@ -135,7 +135,7 @@ const Settings: React.FC = () => {
         <Switch
           value={notificationsDisabled}
           onValueChange={handleToggleNotifications}
-          trackColor={{ true: "#767577", false: "#81b0ff" }}
+          trackColor={{ true: "#767577", false: isDarkMode ? "#1e3a8a" : "#81b0ff" }}
           thumbColor={isDarkMode ? "#f5dd4b" : "#f4f3f4"}
         />
       </View>

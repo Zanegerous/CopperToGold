@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import {SafeAreaView,View,Text,Image,StyleSheet,ActivityIndicator,Modal,TouchableOpacity,Alert,TextInput,} from "react-native";
 import DeckSwiper from "react-native-deck-swiper";
+import "../../global.css";
+import defaultStyle from "../styles/defaultStyle"; // Default style
+import { useTheme } from "../context/ThemeContext"; // Used for getting if app is in light or dark mode
+import { useColorScheme } from "nativewind"; // Used for setting light/dark mode
 import { useTranslation } from "react-i18next";
 import { searchEbay } from "@/ebayApi";
 import Icon from "react-native-vector-icons/FontAwesome";
@@ -23,6 +27,8 @@ export interface EbayItem {
 }
 
 export default function Bolo() {
+  const { isDarkMode, toggleDarkMode } = useTheme();
+
   const [cardIndex, setCardIndex] = useState(0);
   const [items, setItems] = useState<EbayItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -126,28 +132,28 @@ export default function Bolo() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color="#fff" />
+      <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? "#081449" : "#bfdbfe" }]}>
+        <ActivityIndicator size="large" color={isDarkMode ? "#fff" : "#000"} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? "#081449" : "#bfdbfe" }]}>
       <View style={{ flex: 1, width: "100%" }}>
         {/* Header */}
         <View style={styles.headerRow}>
-          <Text style={styles.header}>{t("")}</Text>
+          <Text style={[styles.header, { color: isDarkMode ? "#000" : "#fff" }]}>{t("")}</Text>
           <TouchableOpacity onPress={() => setSettingModal(true)}>
-            <Icon name="gear" size={30} color="darkgrey" />
+            <Icon name="gear" size={30} color={isDarkMode ? "darkgrey" : "black"} />
           </TouchableOpacity>
         </View>
 
         {/* Search Bar */}
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { backgroundColor: isDarkMode ? "#040A25" : "#9bc7fd", color: isDarkMode ? "#fff" : "#000" }]}
           placeholder="Search for items..."
-          placeholderTextColor="#aaa"
+          placeholderTextColor={isDarkMode ? "#aaa" : "#444"}
           value={searchQuery}
           onChangeText={setSearchQuery}
           onSubmitEditing={() => fetchData(searchQuery)}
@@ -206,8 +212,8 @@ export default function Bolo() {
         />
 
         {/* History Button */}
-        <TouchableOpacity style={styles.historyButton} onPress={() => setHistoryModalVisible(true)}>
-          <Text style={styles.historyButtonText}>History</Text>
+        <TouchableOpacity style={[styles.historyButton, { backgroundColor: isDarkMode ? "#102893" : "#87bcfd" }]} onPress={() => setHistoryModalVisible(true)}>
+          <Text style={[styles.historyButtonText, { color: isDarkMode ? "#fff" : "#000" }]}>History</Text>
         </TouchableOpacity>
       </View>
 
@@ -244,7 +250,7 @@ export default function Bolo() {
         animationType="slide"
         onRequestClose={() => setListingModalVisible(false)}
       >
-        <SafeAreaView style={styles.webviewContainer}>
+        <SafeAreaView style={[styles.webviewContainer, { backgroundColor: isDarkMode ? "#040a25" : "#000" }]}>
           <TouchableOpacity
             onPress={() => setListingModalVisible(false)}
             style={styles.closeModalButton}
@@ -325,7 +331,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   viewListingButtonText: {
-    color: "#fff",
+    color: "#000",
     fontSize: 16,
     fontWeight: "600",
   },
