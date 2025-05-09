@@ -734,6 +734,7 @@ export default function App() {
                       setOpen={setOpenSaleTypeDD}
                       setValue={setSaleType}
                       setItems={setSaleTypeDD}
+                      listMode="SCROLLVIEW"
                       placeholder='Choose the type of sale you are listing'
                       style={[
                         styles.dropDown,
