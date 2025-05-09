@@ -546,7 +546,7 @@ export default function App() {
               Cancel
             </Text>
           </TouchableOpacity>
-          <ScrollView className="w-full p-1" contentContainerStyle={{ flexGrow: 1 }}>
+          <ScrollView className="w-full p-1" contentContainerStyle={{ flexGrow: 1 }} nestedScrollEnabled={true} >
           <KeyboardAvoidingView>
             
               {/* Sale Name */}
@@ -627,6 +627,7 @@ export default function App() {
                       setValue={setStateUS}
                       setItems={setItemsStateDD}
                       placeholder='Choose your state'
+                      listMode="SCROLLVIEW"
                       style={[
                         styles.dropDown,
                         { backgroundColor: isDarkMode ? "#040a25" : "#fff", borderColor: isDarkMode ? "#6b7280" : "#b6c2f7",  },
