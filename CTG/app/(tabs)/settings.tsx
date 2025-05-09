@@ -9,6 +9,7 @@ import { useRouter } from "expo-router";
 import i18n from "../i18n";
 import { enableNotifications, disableNotifications } from "../context/NotificationSetup";
 import { loginWithEbay } from "@/ebayConfig";
+import { userLoggedInToEbay } from "../functionForApp/simpleFunctions";
 
 type FontScaleOption = {
   label: string;
@@ -188,7 +189,7 @@ const Settings: React.FC = () => {
         />
       </View>
 
-      <TouchableOpacity style={[styles.logoutButton, { backgroundColor: "#ffd" }]} onPress={loginWithEbay}>
+      <TouchableOpacity style={[styles.logoutButton, { backgroundColor: "#ffd" }]} onPress={() => {loginWithEbay(auth.currentUser?.uid)}}>
         <Text style={[styles.logoutText, { color: "#000", fontSize: 16 * fontScale }]}>
           {i18n.t("SettingsEbayLogin")}
         </Text>
