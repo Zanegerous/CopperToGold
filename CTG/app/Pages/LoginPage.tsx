@@ -51,7 +51,7 @@ export default function LoginPage() {
 
   return (
     <SafeAreaView
-      className={`flex-1 px-4 ${isDarkMode ? "bg-blue-dark-200" : "bg-blue-light-300"}`}
+      className={`flex-1 px-4 ${isDarkMode ? "bg-blue-dark-200" : "bg-stone"}`}
     >
       <View className="mt-10 mb-8 items-center">
         <Text

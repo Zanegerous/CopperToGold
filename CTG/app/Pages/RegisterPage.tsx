@@ -45,7 +45,7 @@ export default function RegisterPage() {
   const scale = (baseSize: number) => baseSize * fontScale;
 
   return (
-    <SafeAreaView className={`flex-1 px-4 ${isDarkMode ? "bg-blue-dark-200" : "bg-blue-light-300"}`}>
+    <SafeAreaView className={`flex-1 px-4 ${isDarkMode ? "bg-blue-dark-200" : "bg-stone"}`}>
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Text style={styles.backButtonText}>{"<"} Back</Text>
       </TouchableOpacity>
@@ -93,39 +93,6 @@ export default function RegisterPage() {
               <Icon name={passwordVisible ? "eye" : "eye-slash"} size={scale(20)} color={isDarkMode ? "#fff" : "#000"} />
             </TouchableOpacity>
           </View>
-        </View>
-        {/* Security Question */}
-        <View className="w-full mb-4">
-          <Text
-            className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-900"}`} style={{ fontSize: scale(20)}}
-          >
-            {t("SecurityQuestion")}
-          </Text>
-          <TextInput
-            className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-300 text-white" : "border-gray-600 text-black"}`}
-            placeholder={t("SecurityQuestionBox")}
-            placeholderTextColor={isDarkMode ? "#aaa" : "#444"}
-            autoCapitalize="none"
-            onChangeText={setSecQuestion}
-            value={secQuestion}
-            style={[styles.textInput, {fontSize: scale(20)}]}
-          />
-        </View>
-        <View className="w-full mb-4">
-          <Text
-            className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-900"}`} style={{ fontSize: scale(20)}}
-          >
-            {t("SecurityAnswer")}
-          </Text>
-          <TextInput
-            className={`border rounded px-3 py-2 ${isDarkMode ? "border-gray-300 text-white" : "border-gray-600 text-black"}`}
-            placeholder={t("SecurityAnswerBox")}
-            placeholderTextColor={isDarkMode ? "#aaa" : "#444"}
-            autoCapitalize="none"
-            onChangeText={setSecAnswer}
-            value={secAnswer}
-            style={[styles.textInput, {fontSize: scale(20)}]}
-          />
         </View>
         <TouchableOpacity
           onPress={handleRegister}
